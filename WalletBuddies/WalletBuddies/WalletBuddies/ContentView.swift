@@ -8,46 +8,25 @@
 import SwiftUI
 
 
-
 struct ContentView: View {
+    @StateObject private var auth = AuthManager()   // single source of truth
+    @State private var isLoggedIn = false
+    
     var body: some View {
-        TabView {
-            NavigationStack {
-                HomeView()
-            }
-            .tabItem {
-                Label("Home", systemImage: "house")
-            }
-
-            NavigationStack {
-                SettingsView()
-            }
-            .tabItem {
-                Label("Settings", systemImage: "gear")
-            }
+        if auth.isLoggedIn {
+            HomeView()
+                .environmentObject(auth)
+        } else {
+            LoginView(onLogin: { isLoggedIn = true })
+                .environmentObject(auth)
         }
     }
 }
 
 
-// Example subviews
-struct HomeView: View {
-    var body: some View {
-        Text("This is the Home tab")
-            .font(.title)
-            .padding()
-    }
-}
-
-struct SettingsView: View {
-    var body: some View {
-        Text("This is the Settings tab")
-            .font(.title)
-            .padding()
-    }
-}
-
 
 #Preview {
     ContentView()
+        .environmentObject(AuthManager())   // supply a dummy instance
+        
 }

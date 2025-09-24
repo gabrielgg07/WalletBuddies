@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		C508C9372E83044F00410242 /* LinkKit in Frameworks */ = {isa = PBXBuildFile; productRef = C508C9362E83044F00410242 /* LinkKit */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		C523D6F32E81D58B00BC7032 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C508C9372E83044F00410242 /* LinkKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -72,12 +77,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		C508C9352E83044F00410242 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		C523D6DC2E81D58A00BC7032 = {
 			isa = PBXGroup;
 			children = (
 				C523D6E72E81D58A00BC7032 /* WalletBuddies */,
 				C523D6F52E81D58B00BC7032 /* WalletBuddiesTests */,
 				C523D6FF2E81D58B00BC7032 /* WalletBuddiesUITests */,
+				C508C9352E83044F00410242 /* Frameworks */,
 				C523D6E62E81D58A00BC7032 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -112,6 +125,7 @@
 			);
 			name = WalletBuddies;
 			packageProductDependencies = (
+				C508C9362E83044F00410242 /* LinkKit */,
 			);
 			productName = WalletBuddies;
 			productReference = C523D6E52E81D58A00BC7032 /* WalletBuddies.app */;
@@ -195,6 +209,9 @@
 			);
 			mainGroup = C523D6DC2E81D58A00BC7032;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				C508C9342E83038B00410242 /* XCRemoteSwiftPackageReference "plaid-link-ios-spm" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C523D6E62E81D58A00BC7032 /* Products */;
 			projectDirPath = "";
@@ -395,6 +412,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = BR67L4C7Q2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -422,6 +440,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = BR67L4C7Q2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -550,6 +569,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		C508C9342E83038B00410242 /* XCRemoteSwiftPackageReference "plaid-link-ios-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/plaid/plaid-link-ios-spm.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.0.4;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		C508C9362E83044F00410242 /* LinkKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C508C9342E83038B00410242 /* XCRemoteSwiftPackageReference "plaid-link-ios-spm" */;
+			productName = LinkKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = C523D6DD2E81D58A00BC7032 /* Project object */;
 }
