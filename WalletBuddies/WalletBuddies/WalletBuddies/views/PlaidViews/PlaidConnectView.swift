@@ -37,10 +37,13 @@ struct PlaidConnectView: View {
                         exchangePublicToken(success.publicToken) { success in
                             if success {
                                 print("✅ Successfully exchanged public token")
-                                onFinish()
+                                DispatchQueue.main.async {
+                                    onFinish()
+                                }
                             }
                         }
-                    },
+                    }
+,
                     onExit: { exit in
                         print("ℹ️ Exit: \(String(describing: exit.error?.errorMessage))")
                     },

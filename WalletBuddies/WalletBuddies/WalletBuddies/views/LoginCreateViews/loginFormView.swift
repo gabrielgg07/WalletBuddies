@@ -12,40 +12,35 @@
         @State private var username = ""
         @State private var password = ""
         @State private var step = 1
-        @Binding var pageSelect: Bool
+
         
         @EnvironmentObject var auth: AuthManager
 
         var body: some View {
                 ZStack {
                     // Background image
-                    Image("LoginBackground")
-                        .resizable()
-                        .scaledToFill()
+                    Color.green    // fallback background if no image
                         .ignoresSafeArea()
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .clipped()
 
                     // Foreground content
                     VStack {
                         if step == 1 {
                             LoginStep1(onNext: { step = 2 })
                         } else {
+                            
+                            Button(action: {
+                                withAnimation { step -= 1 }
+                            }) {
+                                Label("Back", systemImage: "chevron.left")
+                            }
+                            
+                            
                             LoginStep2(onFinish: onLogin,
                                        username: $username,
                                        password: $password)
                             .environmentObject(auth)
                         }
 
-                        if step == 1 {
-                            Button("Don't have an account? Create one") {
-                                withAnimation {
-                                    pageSelect = true
-                                }
-                            }
-                            .foregroundColor(.white)
-                            .padding()
-                        }
                     }
                 }
         }
@@ -86,7 +81,7 @@
                             .textFieldStyle(.roundedBorder)
                             .padding()
                 Button("Login") {
-                    auth.logIn(username: username, password: password)
+                    //auth.logIn(username: username, password: password)
                     onFinish()
                 }
                 .buttonStyle(.borderedProminent)

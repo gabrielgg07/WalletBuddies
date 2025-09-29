@@ -9,7 +9,6 @@ import SwiftUI
 
 struct CreateAccountView: View {
     var onFinish: () -> Void
-    @Binding var pageSelect: Bool
     @State private var step = 1
     
     @State private var username: String = ""
@@ -19,6 +18,16 @@ struct CreateAccountView: View {
     var body: some View {
         VStack {
             //Potentially wrap in enum switch or something better
+
+
+            if step > 1 {
+                Button(action: {
+                    withAnimation { step -= 1 }
+                }) {
+                    Label("Back", systemImage: "chevron.left")
+                }
+            }
+
             if step == 1 {
                 createAccountStep1(onNext: {
                     withAnimation {
@@ -35,17 +44,11 @@ struct CreateAccountView: View {
                     username: $username,
                     password: $password
                 )
-                .environmentObject(auth)
             }   else if step == 3 {
-                PlaidConnectView(onFinish: onFinish)
-            }
-            if step != 3{
-                Button("Already Have an account? Log in"){
-                    withAnimation {
-                        pageSelect = false
-                    }
+                PlaidConnectView(onFinish: { auth.isLoggedIn = true
                 }
-                .padding()
+                )
+
             }
         }
     }
@@ -54,7 +57,6 @@ struct CreateAccountView: View {
 
 struct createAccountStep1: View {
     var onNext: () -> Void
-    
     var body: some View {
         Text("Create Account")
             .font(.largeTitle)
@@ -87,12 +89,18 @@ struct createAccountStep2: View {
             print("Username: \(username)")
             print("Password: \(password)")
             
-            auth.logIn(username: username, password: password)
             onNext()
         }
         .buttonStyle(.borderedProminent)
         .padding()
     }
     
+}
+
+#Preview {
+    CreateAccountView(
+        onFinish: { print("Finished in preview") },
+    )
+    .environmentObject(AuthManager()) // dummy auth manager
 }
 

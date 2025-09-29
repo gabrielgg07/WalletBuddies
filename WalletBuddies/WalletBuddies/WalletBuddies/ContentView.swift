@@ -13,11 +13,19 @@ struct ContentView: View {
     @State private var isLoggedIn = false
     
     var body: some View {
-        if auth.isLoggedIn {
-            HomeView()
-                .environmentObject(auth)
-        } else {
+        if !auth.isLoggedIn {
             LoginView(onLogin: { isLoggedIn = true })
+                .environmentObject(auth)
+        } else if !auth.isPlaidLinked  {
+            //use dispatcher since plaid runs in background thread
+            PlaidConnectView {
+                DispatchQueue.main.async {
+                    auth.isPlaidLinked = true
+                }
+            }
+
+        } else {
+            HomeView()
                 .environmentObject(auth)
         }
     }

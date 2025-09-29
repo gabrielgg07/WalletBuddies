@@ -6,23 +6,23 @@ struct HomeView: View {
     var body: some View {
         TabView {
             // --- First Tab: Home ---
-            Text("Welcome back \(auth.username ?? "")")
+            HomeTabView()
                 .tabItem {
                     Label("Home", systemImage: "house.fill")
                 }
             // --- Second Tab: Transactions ---
-            Text("No Transactions yet...")
+            TransactionsTabView()
                 .tabItem {
                     Label("Transactions", systemImage: "clock.arrow.circlepath")
                 }
             // --- Third Tab: Plants ---
-            Text("Hm you don't seem to have any plants?")
+            PlantTabView()
                 .tabItem {
                     Label("Plants", systemImage: "leaf.fill")
                 }
             
             // --- Fourth Tab: savings goals ---
-            Text("Sorry! Cant set savings goals")
+            GoalsTabView()
                 .tabItem {
                     Label("Goals", systemImage: "target")
                 }
@@ -34,9 +34,8 @@ struct HomeView: View {
                 }
                 .environmentObject(auth)
         }
+        .tint(.green)   // 👈 active tab icon/text will be green
     }
 }
 
-#Preview {
-    HomeView()
-}
+

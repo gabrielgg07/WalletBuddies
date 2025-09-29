@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		C508C9372E83044F00410242 /* LinkKit in Frameworks */ = {isa = PBXBuildFile; productRef = C508C9362E83044F00410242 /* LinkKit */; };
+		C5676D972E85D59000CCA067 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = C5676D962E85D59000CCA067 /* GoogleSignIn */; };
+		C5676D992E85D59400CCA067 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = C5676D982E85D59400CCA067 /* GoogleSignInSwift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -33,9 +35,22 @@
 		C523D6FC2E81D58B00BC7032 /* WalletBuddiesUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WalletBuddiesUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		C5676D9B2E85D94C00CCA067 /* Exceptions for "WalletBuddies" folder in "WalletBuddies" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = C523D6E42E81D58A00BC7032 /* WalletBuddies */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		C523D6E72E81D58A00BC7032 /* WalletBuddies */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C5676D9B2E85D94C00CCA067 /* Exceptions for "WalletBuddies" folder in "WalletBuddies" target */,
+			);
 			path = WalletBuddies;
 			sourceTree = "<group>";
 		};
@@ -56,7 +71,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C5676D992E85D59400CCA067 /* GoogleSignInSwift in Frameworks */,
 				C508C9372E83044F00410242 /* LinkKit in Frameworks */,
+				C5676D972E85D59000CCA067 /* GoogleSignIn in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -126,6 +143,8 @@
 			name = WalletBuddies;
 			packageProductDependencies = (
 				C508C9362E83044F00410242 /* LinkKit */,
+				C5676D962E85D59000CCA067 /* GoogleSignIn */,
+				C5676D982E85D59400CCA067 /* GoogleSignInSwift */,
 			);
 			productName = WalletBuddies;
 			productReference = C523D6E52E81D58A00BC7032 /* WalletBuddies.app */;
@@ -211,6 +230,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				C508C9342E83038B00410242 /* XCRemoteSwiftPackageReference "plaid-link-ios-spm" */,
+				C5676D952E85D4ED00CCA067 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C523D6E62E81D58A00BC7032 /* Products */;
@@ -415,6 +435,7 @@
 				DEVELOPMENT_TEAM = BR67L4C7Q2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WalletBuddies/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -443,6 +464,7 @@
 				DEVELOPMENT_TEAM = BR67L4C7Q2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WalletBuddies/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -579,6 +601,14 @@
 				minimumVersion = 6.0.4;
 			};
 		};
+		C5676D952E85D4ED00CCA067 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 9.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -586,6 +616,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = C508C9342E83038B00410242 /* XCRemoteSwiftPackageReference "plaid-link-ios-spm" */;
 			productName = LinkKit;
+		};
+		C5676D962E85D59000CCA067 /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C5676D952E85D4ED00CCA067 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		C5676D982E85D59400CCA067 /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C5676D952E85D4ED00CCA067 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

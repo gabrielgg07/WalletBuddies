@@ -7,9 +7,9 @@
 
 import SwiftUI
 
-struct Tab2View: View {
+struct HomeTabView: View {
     var body: some View {
-        Text("This is Tab 2")
+        Text("Welcome to walletbuddies!")
             .font(.title)
             .padding()
     }
