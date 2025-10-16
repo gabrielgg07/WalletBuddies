@@ -3,6 +3,8 @@
 //  WalletBuddies
 //
 //  Created by Gabriel Gonzalez on 9/22/25.
+//  This is the head level file and has some styling for the tab
+//  It also sets up config for google sign in. 
 //
 
 import SwiftUI

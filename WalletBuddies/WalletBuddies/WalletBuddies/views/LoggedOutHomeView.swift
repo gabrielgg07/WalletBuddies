@@ -8,55 +8,41 @@
 import SwiftUI
 
 struct LoginView: View {
+    //passed down authmanager
     @EnvironmentObject var auth: AuthManager
-    @State private var showCreateAccount = false
-    var onLogin: () -> Void
+
+
     
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 20) {
-                Text("Welcome to Wallet Buddies!")
-                    .font(.headline)
-                
-                // Standard login form
-                /**
-                NavigationLink("Login") {
-                    //LoginFormView(onLogin: { onLogin() })
-                    //   .environmentObject(auth)
+        VStack(spacing: 20) {
+            //Header text will add more styling later.
+            Text("Welcome to Wallet Buddies!")
+                .font(.headline)
+            //Create a button that logs you in with google
+            Button {
+                if let rootVC = UIApplication.shared
+                    .connectedScenes
+                    .compactMap({ $0 as? UIWindowScene })
+                    .first?
+                    .windows
+                    .first(where: { $0.isKeyWindow })?
+                    .rootViewController {
+                    
+                    //Call the authenticators function to sign in with google
+                    auth.signInWithGoogle(presenting: rootVC)
                 }
-                .buttonStyle(.borderedProminent)
-                */
-                
-                
-                // Create account flow
-                /**
-                NavigationLink("Create Account") {
-                    //CreateAccountView(onFinish: { onLogin() })
-                      //  .environmentObject(auth)
+            } label: {
+                HStack {
+                    Image(systemName: "globe") // Replace with Google logo if you want
+                    Text("Sign in with Google")
                 }
-                .buttonStyle(.borderedProminent)
-                 */
-                // ---- Google Sign-In ----
-                Button {
-                    if let rootVC = UIApplication.shared
-                        .connectedScenes
-                        .compactMap({ $0 as? UIWindowScene })
-                        .first?
-                        .windows
-                        .first(where: { $0.isKeyWindow })?
-                        .rootViewController {
-                        
-                        auth.signInWithGoogle(presenting: rootVC)
-                    }
-                } label: {
-                    HStack {
-                        Image(systemName: "globe") // Replace with Google logo if you want
-                        Text("Sign in with Google")
-                    }
-                }
-                .buttonStyle(.bordered)
             }
-            .navigationTitle("Welcome")
+            .buttonStyle(.bordered)
         }
     }
+}
+
+#Preview {
+    LoginView()
+        .environmentObject(AuthManager())
 }

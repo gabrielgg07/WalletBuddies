@@ -40,6 +40,7 @@ class AuthManager: ObservableObject {
         DispatchQueue.main.async {
             self.isLoggedIn = false
             self.name = ""
+            self.isPlaidLinked = false
         }
     }
     
