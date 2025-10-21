@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from Utils.db.base import SessionLocal
+from Utils.db.models import User
 from Utils.crud.user_crud import (
     create_user,
     get_user,
@@ -10,6 +11,48 @@ from Utils.crud.user_crud import (
 import bcrypt
 
 user_bp = Blueprint("user_bp", __name__)
+
+# Signup 
+
+@user_bp.route('/signup',methods=["POST"])
+def createAcc():
+  get_database = SessionLocal()
+  signupData = request.get_json() or {}
+  print(signupData)
+  firstName = signupData.get('firstName')
+  lastName = signupData.get('lastName')
+  userEmail = (signupData.get('emailAddress')).lower()
+  userPassword = bcrypt.hashpw(signupData.get('password').encode('utf-8'),bcrypt.gensalt())
+
+  if not all([firstName,userEmail,userPassword]):
+    return jsonify({"success":False, "message": "Missing required fields"}),400
+ 
+  userObj = get_database.query(User).filter(User.email == userEmail).first()
+  if userEmail!= (userObj.email):
+    createUser = User(fname=firstName,lname=lastName,email=userEmail, password_hash = userPassword.decode('utf-8'))
+    get_database.add(createUser)
+    get_database.commit()
+    get_database.close()
+
+  return jsonify({"success":True, "message": "Account Successfully Created"}),201
+  
+
+# User login by Email
+
+@user_bp.route('/login',methods=["POST"])
+def logIn():
+   get_database = SessionLocal()
+   loginData = request.get_json() or {}
+   print(loginData)
+   userEmail = loginData.get('emailAddress').lower()
+   userPassword = loginData.get('password')
+   userObj = get_database.query(User).filter(User.email == userEmail).first()
+   print(userObj.email)
+   if userEmail == userObj.email :
+       return jsonify({"success":True, "message": "Logged In"}),200
+   else:
+      return jsonify({"success":False, "message": "User doesn't Exist"}),400
+    
 
 # -------------------------------
 # 🧱 Create new user
