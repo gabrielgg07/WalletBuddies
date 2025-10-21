@@ -13,6 +13,7 @@ struct PlaidConnectView: View {
     @State private var showPlaid = false
     @State private var linkToken: String?
 
+    @EnvironmentObject var authManager: AuthManager
     var body: some View {
         VStack {
             if linkToken == nil {
@@ -34,7 +35,7 @@ struct PlaidConnectView: View {
                     token: linkToken ?? "",
                     onSuccess: { success in
                         print("✅ Success: public_token = \(success.publicToken)")
-                        exchangePublicToken(success.publicToken) { success in
+                        exchangePublicToken(success.publicToken, auth: authManager) { success in
                             if success {
                                 print("✅ Successfully exchanged public token")
                                 DispatchQueue.main.async {

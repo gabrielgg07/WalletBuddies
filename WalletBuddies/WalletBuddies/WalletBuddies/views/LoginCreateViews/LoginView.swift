@@ -50,7 +50,7 @@ struct LoginView: View{
                         Image(systemName:"arrow.right")
                     }.frame(maxWidth: .infinity)
                     
-                }.buttonStyle(.glassProminent)
+                }//.buttonStyle(.glass)
                     .frame(maxWidth: .infinity)
                 //                .border(Color.white)
                     .buttonBorderShape(.roundedRectangle)
@@ -88,7 +88,7 @@ struct LoginView: View{
                         .padding(.vertical,3)
                     
                 }
-                .buttonStyle(.glassProminent)
+                //.buttonStyle(.glassProminent)
                 .tint(.black)
                 .padding(.horizontal)
             } else {
@@ -98,7 +98,7 @@ struct LoginView: View{
             Spacer()
             
             NavigationLink("Sign Up to create an account."){
-                signupView()
+                SignupView()
             }.foregroundStyle(.white)
             
         }.frame(maxWidth:.infinity,maxHeight:.infinity,alignment:.center)
@@ -110,8 +110,4 @@ struct LoginView: View{
 func loginWithEmail(){
     print("Move to next page")
 }
-#Preview {
-    NavigationStack{
-    LoginView()
-}
-}
+

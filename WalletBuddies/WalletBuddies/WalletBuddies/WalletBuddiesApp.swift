@@ -12,6 +12,7 @@ import GoogleSignIn
 
 @main
 struct WalletBuddiesApp: App {
+    @StateObject private var auth = AuthManager()
     
     init() {
         let appearance = UITabBarAppearance()
@@ -35,6 +36,7 @@ struct WalletBuddiesApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(auth)
         }
         
     }

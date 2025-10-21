@@ -13,8 +13,9 @@ struct TransactionsTabView: View {
     @State private var transactions: [Transaction] = []
     @State private var isLoading = true
     
+    @EnvironmentObject var auth: AuthManager
     var body: some View {
-        VStack {
+        VStack(alignment: .leading) {
             Picker("Accounts", selection: $selectedTab) {
                 Text("Checking").tag(0)
                 Text("Savings").tag(1)
@@ -36,7 +37,7 @@ struct TransactionsTabView: View {
         }
         .onAppear {
             // Fetch from backend
-            fetchTransactions { txns in
+            fetchTransactions(auth: auth) { txns in
                 self.transactions = txns
                 self.isLoading = false
             }

@@ -2,7 +2,7 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy import create_engine
 import os
 
-DATABASE_URL = "postgresql://postgres:postgres@localhost:5433/walletbuddies_db"
+DATABASE_URL = "postgresql://wallet_user:postgres@localhost:5432/walletbuddies_db"
 
 engine = create_engine(DATABASE_URL)
 

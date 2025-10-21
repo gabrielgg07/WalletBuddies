@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct LoginView: View {
+struct DeprecatedLoginView: View {
     //passed down authmanager
     @EnvironmentObject var auth: AuthManager
 
