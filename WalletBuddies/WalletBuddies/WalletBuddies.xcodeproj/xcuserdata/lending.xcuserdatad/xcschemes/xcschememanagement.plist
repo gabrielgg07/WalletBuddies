@@ -2,14 +2,13 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleURLTypes</key>
-	<array>
+	<key>SchemeUserState</key>
+	<dict>
+		<key>WalletBuddies.xcscheme_^#shared#^_</key>
 		<dict>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>com.googleusercontent.apps.243679696449-1u67ftc5thcuepbnqj28revb6mph0b2t</string>
-			</array>
+			<key>orderHint</key>
+			<integer>0</integer>
 		</dict>
-	</array>
+	</dict>
 </dict>
 </plist>
