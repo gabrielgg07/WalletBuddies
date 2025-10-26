@@ -18,8 +18,7 @@ import SwiftUI
 
 
 struct ContentView: View {
-    @StateObject private var
-    auth = AuthManager()   // single source of truth
+    @EnvironmentObject var auth: AuthManager
     @State private var isLoggedIn = false
     
     var body: some View {

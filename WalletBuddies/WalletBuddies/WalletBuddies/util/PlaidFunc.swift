@@ -24,7 +24,7 @@ let BaseURL = "https://10434490ec83.ngrok-free.app"  // your Mac’s LAN IP for 
 // MARK: - Networking helpers
 
 func fetchLinkToken(completion: @escaping (String?) -> Void) {
-    guard let url = URL(string:  "\(BaseURL)/api/create_link_token") else {
+    guard let url = URL(string:  "\(BaseURL)/api/plaid/create_link_token") else {
         completion(nil)
         return
     }
@@ -52,16 +52,25 @@ func fetchLinkToken(completion: @escaping (String?) -> Void) {
     }.resume()
 }
 
-func exchangePublicToken(_ publicToken: String, completion: @escaping (Bool) -> Void) {
-    guard let url = URL(string: "\(BaseURL)/api/exchange_public_token") else {
+func exchangePublicToken(
+    _ publicToken: String,
+    auth: AuthManager,
+    completion: @escaping (Bool) -> Void
+) {
+    guard let url = URL(string: "\(BaseURL)/api/plaid/exchange_public_token") else {
         completion(false)
         return
     }
 
+    let body: [String: Any] = [
+        "public_token": publicToken,
+        "email": auth.email // 👈 comes from the injected AuthManager
+    ]
+
     var request = URLRequest(url: url)
     request.httpMethod = "POST"
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    request.httpBody = try? JSONSerialization.data(withJSONObject: ["public_token": publicToken])
+    request.httpBody = try? JSONSerialization.data(withJSONObject: body)
 
     URLSession.shared.dataTask(with: request) { data, _, error in
         guard let data = data, error == nil else {
@@ -91,8 +100,12 @@ struct Transaction: Identifiable {
 }
 
 // MARK: - Plaid API Helpers
-func fetchTransactions(completion: @escaping ([Transaction]) -> Void) {
-    guard let url = URL(string: "\(BaseURL)/api/transactions") else {
+func fetchTransactions(
+    auth: AuthManager,
+    completion: @escaping ([Transaction]) -> Void
+) {
+    guard let email = auth.email.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+          let url = URL(string: "\(BaseURL)/api/plaid/transactions?email=\(email)") else {
         completion([])
         return
     }
@@ -103,35 +116,24 @@ func fetchTransactions(completion: @escaping ([Transaction]) -> Void) {
             completion([])
             return
         }
-        
+
         do {
-            // For now, Plaid returns a big dictionary
-            // We’ll just parse the transactions array if it exists
             if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
                let transactions = json["transactions"] as? [[String: Any]] {
-                
-                // Map minimal fields into our Swift struct
-                let mapped = transactions.map { txn in
+                let mapped = transactions.map {
                     Transaction(
-                        name: txn["name"] as? String,
-                        amount: txn["amount"] as? Double
+                        name: $0["name"] as? String,
+                        amount: $0["amount"] as? Double
                     )
                 }
-                
-                DispatchQueue.main.async {
-                    completion(mapped)
-                }
+                DispatchQueue.main.async { completion(mapped) }
             } else {
                 print("❌ bad transaction response:", String(data: data, encoding: .utf8) ?? "")
-                DispatchQueue.main.async {
-                    completion([])
-                }
+                DispatchQueue.main.async { completion([]) }
             }
         } catch {
             print("❌ json decode error:", error)
-            DispatchQueue.main.async {
-                completion([])
-            }
+            DispatchQueue.main.async { completion([]) }
         }
     }.resume()
 }
