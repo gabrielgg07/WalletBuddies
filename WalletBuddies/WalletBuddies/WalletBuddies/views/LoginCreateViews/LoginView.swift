@@ -7,7 +7,8 @@
 
 import SwiftUI
 
-struct LoginView: View{
+
+struct LoginView2: View{
     @State private var userEmail = ""
     @EnvironmentObject var auth: AuthManager
     
@@ -99,6 +100,7 @@ struct LoginView: View{
             
             NavigationLink("Sign Up to create an account."){
                 signupView()
+
             }.foregroundStyle(.white)
             
         }.frame(maxWidth:.infinity,maxHeight:.infinity,alignment:.center)
