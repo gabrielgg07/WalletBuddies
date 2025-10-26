@@ -11,8 +11,9 @@ import SwiftUI
 struct TransactionsTabView: View {
     @State private var selectedTab = 0
     @State private var transactions: [Transaction] = []
-    @State private var isLoading = true
+    @State private var isLoading: Bool = true
     
+    @State private var showBuckets = false
     @EnvironmentObject var auth: AuthManager
     var body: some View {
         VStack(alignment: .leading) {
@@ -23,6 +24,11 @@ struct TransactionsTabView: View {
             }
             .pickerStyle(.segmented)
             .padding()
+            Button(action: {
+                showBuckets = true
+            }) {
+                Text("Create Budgeting Buckets")
+            }
             
             if isLoading {
                 ProgressView("Loading transactions…")
@@ -34,6 +40,9 @@ struct TransactionsTabView: View {
             } else {
                 TransactionList(items: transactions)
             }
+        }
+        .fullScreenCover(isPresented: $showBuckets){
+            BudgetBucketsView()
         }
         .onAppear {
             // Fetch from backend
