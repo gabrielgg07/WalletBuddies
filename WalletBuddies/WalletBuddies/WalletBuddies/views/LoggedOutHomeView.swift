@@ -42,7 +42,3 @@ struct DeprecatedLoginView: View {
     }
 }
 
-#Preview {
-    LoginView()
-        .environmentObject(AuthManager())
-}

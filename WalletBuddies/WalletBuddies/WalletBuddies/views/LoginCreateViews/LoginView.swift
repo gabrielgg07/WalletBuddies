@@ -8,7 +8,7 @@
 import SwiftUI
 
 
-struct LoginView2: View{
+struct LoginView: View{
     @State private var userEmail = ""
     @EnvironmentObject var auth: AuthManager
     
