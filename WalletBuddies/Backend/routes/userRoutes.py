@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
-from Utils.db.base import SessionLocal
-from Utils.db.models import User
-from Utils.crud.user_crud import (
+from WalletBuddies.Utils.db.base import SessionLocal
+from WalletBuddies.Utils.db.models import User
+from WalletBuddies.Utils.crud.user_crud import (
     create_user,
     get_user,
     get_user_by_email,

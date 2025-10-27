@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct LoginView: View {
+struct loginView: View {
     //passed down authmanager
     @EnvironmentObject var auth: AuthManager
 
@@ -43,6 +43,6 @@ struct LoginView: View {
 }
 
 #Preview {
-    LoginView()
+    loginView()
         .environmentObject(AuthManager())
 }
