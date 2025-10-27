@@ -1,4 +1,3 @@
-
 //
 //  signupView.swift
 //  WalletBuddies
@@ -8,7 +7,6 @@
 import SwiftUI
 
 struct SignupView: View{
-    
     @State private var fName = ""
     @State private var lName = ""
     @State private var userEmail = ""
@@ -17,9 +15,6 @@ struct SignupView: View{
     @State private var accountCreated = false
     @State private var displayName = ""
     
-    
-    @EnvironmentObject var authManager: AuthManager
-    @Environment(\.dismiss) private var dismiss
     
     @FocusState private var inFocusFeild : Field?
     enum Field{
@@ -139,7 +134,9 @@ struct SignupView: View{
             
         }).frame(maxWidth :.infinity, maxHeight: .infinity, alignment: .center)
             .background(Color.brown.opacity(0.8))
-
+            .navigationDestination(isPresented: $accountCreated){
+                AccountCreationSuccessView(firstName: displayName)
+            }
     }
 
     func validatePassword(passWord : String) -> Bool {
@@ -147,50 +144,44 @@ struct SignupView: View{
         return NSPredicate(format: "SELF MATCHES %@", passwordFormat).evaluate(with: passWord)
     }
     
-    private func submitSignupForm() {
-        guard let signupURL = URL(string: "http://127.0.0.1:5001/api/users/signup") else { return }
-        
-        let payload: [String: Any] = [
-            "firstName": fName,
-            "lastName": lName,
-            "emailAddress": userEmail,
-            "password": userPassword
+    private func submitSignupForm(){
+        guard let signupURL = URL(string:"http://127.0.0.1:5001/signup") else {return}
+        let payload : [String: Any] = [
+            "firstName" : fName,
+            "lastName" : lName,
+            "emailAddress" : userEmail,
+            "password" : userPassword,
         ]
         
-        var request = URLRequest(url: signupURL)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
+        var sendRequest = URLRequest(url : signupURL)
+        sendRequest.httpMethod = "POST"
+        sendRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        sendRequest.httpBody = try? JSONSerialization.data(withJSONObject: payload)
         
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            guard let data = data else { return }
-            if let decoded = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-               let success = decoded["success"] as? Bool {
-                
-                DispatchQueue.main.async {
-                    if success {
-                        // ✅ inform AuthManager user is logged in
-                        authManager.handleSignupSuccess(
-                            name: "\(self.fName) \(self.lName)",
-                            email: self.userEmail
-                        )
-                        dismiss() // 👈 closes the current pushed SignupView
-                    } else {
-                        print("Signup failed: \(decoded["message"] ?? "Unknown error")")
-                    }
-                }
+        URLSession.shared.dataTask(with: sendRequest){ data, _, _ in
+            if let data = data{
+                print(String(data:data,encoding: .utf8) ?? "")
             }
+            
         }.resume()
+        
+        
     }
-
     
     func createAccount (validate : Bool) {
-        guard validate else {
-            print("Account not created")
-            return
+        if validate{
+//clear form
+            submitSignupForm()
+            displayName = fName
+            accountCreated = true
+            ClearFields()
+            
+            
         }
-        submitSignupForm()
-    }
+            else{
+                print("Account not created")
+            }
+        }
     
     func ClearFields(){
         fName = ""
