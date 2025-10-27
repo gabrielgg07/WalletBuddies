@@ -28,13 +28,21 @@ def createAcc():
     return jsonify({"success":False, "message": "Missing required fields"}),400
  
   userObj = get_database.query(User).filter(User.email == userEmail).first()
-  if userEmail!= (userObj.email):
+
+  if not userObj:
+    createUser = User(fname=firstName, lname=lastName, email=userEmail, password_hash=userPassword.decode('utf-8'))
+    get_database.add(createUser)
+    get_database.commit()
+    get_database.close()
+    return jsonify({"success": True, "message": "Account Successfully Created"}), 201
+  elif userObj and userEmail!= (userObj.email):
     createUser = User(fname=firstName,lname=lastName,email=userEmail, password_hash = userPassword.decode('utf-8'))
     get_database.add(createUser)
     get_database.commit()
     get_database.close()
+    return jsonify({"success":True, "message": "Account Successfully Created"}),201
 
-  return jsonify({"success":True, "message": "Account Successfully Created"}),201
+  return jsonify({"success":False, "message": "Account Not Created"}),400
   
 
 # User login by Email
@@ -47,12 +55,31 @@ def logIn():
    userEmail = loginData.get('emailAddress').lower()
    userPassword = loginData.get('password')
    userObj = get_database.query(User).filter(User.email == userEmail).first()
-   print(userObj.email)
-   if userEmail == userObj.email :
-       return jsonify({"success":True, "message": "Logged In"}),200
-   else:
-      return jsonify({"success":False, "message": "User doesn't Exist"}),400
-    
+   if not userObj:
+       return jsonify({"success": False, "message": "User doesn't Exist"}), 400
+   elif userObj.email == userEmail:
+       return jsonify({"success": True, "message": "Logged In"}), 200
+   return jsonify({"success": False, "message": "Login Error"}), 400
+
+
+
+@user_bp.route('/deleteUser',methods=["POST"])
+def deleteUser():
+    get_database = SessionLocal()
+    deleteFormData = request.get_json() or {}
+    print(deleteFormData)
+    userEmail = deleteFormData.get('emailAddress').lower()
+    userPassword = deleteFormData.get('password')
+    userObj = get_database.query(User).filter(User.email == userEmail).first()
+    if not userObj:
+        return jsonify({"success": False, "message": "No user to delete"}),400
+    elif userEmail == userObj.email and bcrypt.checkpw(userPassword.encode('utf-8'),userObj.password_hash.encode('utf-8')):
+        get_database.delete(userObj)
+        get_database.commit()
+        get_database.close()
+        return jsonify({"success":True, "message": "User Deleted"}),200
+    return jsonify({"success": False, "message": "Not successful"}),400
+
 
 # -------------------------------
 # 🧱 Create new user
