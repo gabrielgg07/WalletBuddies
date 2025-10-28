@@ -12,3 +12,7 @@ __pycache__/
 *.xcuserstate
 *.xcworkspace/xcuserdata
 
+# Xcode user settings
+*.xcuserdatad/
+*.xcuserstate
+*.xcworkspace/xcuserdata/
