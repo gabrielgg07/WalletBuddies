@@ -8,5 +8,7 @@ __pycache__/
 
 *.xcuserdata
 *.xcuserstate
+*.xcuserdatad/
+*.xcuserstate
 *.xcworkspace/xcuserdata
 
