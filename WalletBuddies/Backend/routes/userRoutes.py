@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from Utils.db.base import SessionLocal
 from Utils.db.models import User
+
 from Utils.crud.user_crud import (
     create_user,
     get_user,
@@ -56,19 +57,45 @@ def createAcc():
 
 # User login by Email
 
-@user_bp.route('/login',methods=["POST"])
+@user_bp.route('/login', methods=["POST"])
 def logIn():
-   get_database = SessionLocal()
-   loginData = request.get_json() or {}
-   print(loginData)
-   userEmail = loginData.get('emailAddress').lower()
-   userPassword = loginData.get('password')
-   userObj = get_database.query(User).filter(User.email == userEmail).first()
-   print(userObj.email)
-   if userEmail == userObj.email :
-       return jsonify({"success":True, "message": "Logged In"}),200
-   else:
-      return jsonify({"success":False, "message": "User doesn't Exist"}),400
+    db = SessionLocal()
+    try:
+        data = request.get_json() or {}
+        user_email = data.get('emailAddress', '').lower()
+        user_password = data.get('password')
+
+        if not user_email or not user_password:
+            return jsonify({"success": False, "message": "Missing email or password"}), 400
+
+        user = db.query(User).filter(User.email == user_email).first()
+        if not user:
+            return jsonify({"success": False, "message": "User not found"}), 404
+
+        # ✅ Check hashed password correctly
+
+        if not bcrypt.checkpw(user_password.encode('utf-8'), user.password_hash.encode('utf-8')):
+            return jsonify({"success": False, "message": "Incorrect password"}), 401
+
+        # ✅ Return clean user info
+        return jsonify({
+            "success": True,
+            "message": "Logged In",
+            "user": {
+                "id": user.id,
+                "first_name": user.fname,
+                "last_name": user.lname,
+                "email": user.email,
+                "created_at": user.created_at.isoformat() if user.created_at else None
+            }
+        }), 200
+
+    except Exception as e:
+        print("❌ Login error:", e)
+        return jsonify({"success": False, "message": "Server error"}), 500
+    finally:
+        db.close()
+
     
 
 # -------------------------------

@@ -15,6 +15,11 @@ struct AccountTabView: View {
             VStack(spacing: 20) {
 
                 
+                Button("Delete Account") {
+                    auth.deleteAccount()
+                }
+                .buttonStyle(.bordered)
+                
                 Button("Log Out") {
                     auth.signOut()
                 }

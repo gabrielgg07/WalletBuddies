@@ -15,7 +15,7 @@ struct LoginWithEmailView: View{
     @State private var userPassword = ""
     @State private var loggedIn : Bool = false
     
-    
+    @EnvironmentObject  var authManager: AuthManager
     init(email:String){
         _userEmail = State(initialValue: email)
     }
@@ -25,10 +25,7 @@ struct LoginWithEmailView: View{
     
     var body : some View{
         VStack(alignment:.center, spacing:20){
-            
-            Spacer()
-            
-            Text("Welcome to WalletBuddies")
+
             
             
             TextField("Email Address", text : $userEmail)
@@ -67,21 +64,11 @@ struct LoginWithEmailView: View{
                 .tint(.black)
                 .opacity(duringIncompleteForm ? 0.7 : 1.0)
             
-            Spacer()
-            
-            NavigationLink("Sign Up to create an account."){
-                SignupView()
-            }.foregroundStyle(.white)
-            
-        }.frame(maxWidth:.infinity,maxHeight:.infinity,alignment:.center)
-            .background(Color.brown.opacity(0.8))
-            .navigationDestination(isPresented: $loggedIn){
-                HomeView()
-            }
+        }
     }
     
     private func submitLoginForm(){
-        guard let loginURL = URL(string:"\(BaseURL)/login") else {return}
+        guard let loginURL = URL(string:"\(BaseURL)/api/users/login") else {return}
         let payload : [String: Any] = [
             "emailAddress" : userEmail,
             "password" : userPassword,
@@ -97,15 +84,24 @@ struct LoginWithEmailView: View{
                 print("Error!")
                 return
             }
-            if let data = data{
-                print(String(data:data,encoding: .utf8) ?? "")
-            }
-            if let http = response as? HTTPURLResponse{
-                if http.statusCode == 200{
-                    DispatchQueue.main.async{
+
+            guard let data = data else { return }
+
+            do {
+                let decoded = try JSONDecoder().decode(LoginResponse.self, from: data)
+
+                if decoded.success, let user = decoded.user {
+                    DispatchQueue.main.async {
+                        authManager.handleLoginResponse(user: user)
                         loggedIn = true
                     }
+                } else {
+                    print("❌ \(decoded.message)")
                 }
+
+            } catch {
+                print("❌ Decode error: \(error)")
+                print(String(data: data, encoding: .utf8) ?? "")
             }
         }.resume()
         

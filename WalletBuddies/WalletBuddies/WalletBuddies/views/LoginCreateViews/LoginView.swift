@@ -10,7 +10,9 @@ import SwiftUI
 
 struct LoginView: View{
     @State private var userEmail = ""
+    @State private var userPassword = ""
     @EnvironmentObject var auth: AuthManager
+    
     
     var duringIncompleteForm : Bool {userEmail.isEmpty}
     
@@ -23,53 +25,9 @@ struct LoginView: View{
             
             Text("Welcome to WalletBuddies").font(.title2)
                 .padding(.vertical,30)
-    
-            
-            TextField("Email Address", text : $userEmail)
-                .textFieldStyle(.roundedBorder)
-                .disableAutocorrection(true)
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, 20)
-                .textInputAutocapitalization(.never)
-            
-            //            TextField("Password", text : $userPassword)
-            //                .textFieldStyle(.roundedBorder)
-            //                .disableAutocorrection(true)
-            //                .frame(maxWidth: .infinity)
-            //                .padding(.horizontal, 20)
-            
-            if #available(iOS 26.0, *) {
-                Button{
-                    print("button was clicked")
-                    if duringIncompleteForm != true{
-                        formComplete = true
-                    }
-                    
-                } label:{
-                    HStack{
-                        Text("Log In")
-                        Image(systemName:"arrow.right")
-                    }.frame(maxWidth: .infinity)
-                    
-                }//.buttonStyle(.glass)
-                    .frame(maxWidth: .infinity)
-                //                .border(Color.white)
-                    .buttonBorderShape(.roundedRectangle)
-                    .fontWeight(.bold)
-                    .foregroundStyle(.white)
-//                    .background(Color.black)
-                    .padding(.vertical,10)
-                    .padding(.horizontal,20)
-                //                .disabled(duringIncompleteForm)
-                    .tint(.black)
-                //                .opacity(duringIncompleteForm ? 0.7 : 1.0)
-                    .navigationDestination(isPresented: $formComplete){
-                        LoginWithEmailView(email : userEmail)
-                    }
-            } else {
-                // Fallback on earlier versions
-            }
-            if #available(iOS 26.0, *) {
+            LoginWithEmailView(email : userEmail)
+
+            if true {
                 Button {
                     if let rootVC = UIApplication.shared
                         .connectedScenes
