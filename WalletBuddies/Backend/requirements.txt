@@ -1,6 +1,0 @@
-Flask==3.0.0
-python-dotenv==1.0.1
-plaid-python==18.0.0
-sqlalchemy==2.0.44
-# psycopg2==2.9.11
-bcrypt==5.0.0
