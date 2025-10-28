@@ -7,12 +7,13 @@
 
 import SwiftUI
 
-struct loginView: View {
+
+struct DeprecatedLoginView: View {
+
     //passed down authmanager
     @EnvironmentObject var auth: AuthManager
 
 
-    
     var body: some View {
         VStack(spacing: 20) {
             //Header text will add more styling later.
@@ -42,7 +43,4 @@ struct loginView: View {
     }
 }
 
-#Preview {
-    loginView()
-        .environmentObject(AuthManager())
-}
+

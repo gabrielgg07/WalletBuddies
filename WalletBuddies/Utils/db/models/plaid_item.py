@@ -17,9 +17,10 @@ class PlaidItem(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
-    plaid_item_id = Column(Text, unique=True, nullable=False)  # from Plaid
+    access_token = Column(Text, nullable=False)              # ✅ add this
+    plaid_item_id = Column(Text, unique=True, nullable=False)  # keep this as the Plaid item_id
     institution_name = Column(Text)
-    status = Column(String)  # e.g. active, error, etc.
+    status = Column(String)
     created_at = Column(TIMESTAMP, default=datetime.utcnow)
 
     # --- Relationships ---

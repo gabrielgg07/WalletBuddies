@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+
+
 struct LoginWithEmailView: View{
     
     @State private var userEmail : String
@@ -68,7 +70,7 @@ struct LoginWithEmailView: View{
             Spacer()
             
             NavigationLink("Sign Up to create an account."){
-                signupView()
+                SignupView()
             }.foregroundStyle(.white)
             
         }.frame(maxWidth:.infinity,maxHeight:.infinity,alignment:.center)
@@ -79,7 +81,7 @@ struct LoginWithEmailView: View{
     }
     
     private func submitLoginForm(){
-        guard let loginURL = URL(string:"http://127.0.0.1:5001/login") else {return}
+        guard let loginURL = URL(string:"\(BaseURL)/login") else {return}
         let payload : [String: Any] = [
             "emailAddress" : userEmail,
             "password" : userPassword,

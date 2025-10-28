@@ -32,17 +32,36 @@ class AuthManager: ObservableObject {
         restorePreviousSignIn()
     }
     
-    
-    func signOut() {
-        // Signs out locally (Google token is kept, so user could sign in again quickly)
-        GIDSignIn.sharedInstance.signOut()
-        
-        DispatchQueue.main.async {
-            self.isLoggedIn = false
-            self.name = ""
-            self.isPlaidLinked = false
-        }
+
+    @Published var email = UserDefaults.standard.string(forKey: "userEmail") ?? ""
+
+
+
+    func handleSignupSuccess(name: String, email: String) {
+        self.name = name
+        self.email = email
+        self.isLoggedIn = true
+
+        UserDefaults.standard.set(true, forKey: "isLoggedIn")
+        UserDefaults.standard.set(name, forKey: "userName")
+        UserDefaults.standard.set(email, forKey: "userEmail")
+
+        print("✅ User signed up & logged in: \(email)")
     }
+
+    func signOut() {
+        self.isLoggedIn = false
+        self.name = ""
+        self.email = ""
+        self.isPlaidLinked = false
+
+        UserDefaults.standard.removeObject(forKey: "isLoggedIn")
+        UserDefaults.standard.removeObject(forKey: "userName")
+        UserDefaults.standard.removeObject(forKey: "userEmail")
+
+        print("👋 Logged out successfully")
+    }
+    
     
     func restorePreviousSignIn() {
         GIDSignIn.sharedInstance.restorePreviousSignIn { user, error in

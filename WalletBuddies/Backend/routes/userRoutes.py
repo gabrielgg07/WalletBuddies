@@ -14,35 +14,46 @@ user_bp = Blueprint("user_bp", __name__)
 
 # Signup 
 
-@user_bp.route('/signup',methods=["POST"])
+@user_bp.route('/signup', methods=["POST"])
 def createAcc():
-  get_database = SessionLocal()
-  signupData = request.get_json() or {}
-  print(signupData)
-  firstName = signupData.get('firstName')
-  lastName = signupData.get('lastName')
-  userEmail = (signupData.get('emailAddress')).lower()
-  userPassword = bcrypt.hashpw(signupData.get('password').encode('utf-8'),bcrypt.gensalt())
+    db = SessionLocal()
+    signupData = request.get_json() or {}
+    print(signupData)
 
-  if not all([firstName,userEmail,userPassword]):
-    return jsonify({"success":False, "message": "Missing required fields"}),400
- 
-  userObj = get_database.query(User).filter(User.email == userEmail).first()
 
-  if not userObj:
-    createUser = User(fname=firstName, lname=lastName, email=userEmail, password_hash=userPassword.decode('utf-8'))
-    get_database.add(createUser)
-    get_database.commit()
-    get_database.close()
-    return jsonify({"success": True, "message": "Account Successfully Created"}), 201
-  elif userObj and userEmail!= (userObj.email):
-    createUser = User(fname=firstName,lname=lastName,email=userEmail, password_hash = userPassword.decode('utf-8'))
-    get_database.add(createUser)
-    get_database.commit()
-    get_database.close()
-    return jsonify({"success":True, "message": "Account Successfully Created"}),201
+    firstName = signupData.get('firstName')
+    lastName = signupData.get('lastName')
+    userEmail = signupData.get('emailAddress', '').lower()
+    userPassword = signupData.get('password')
 
-  return jsonify({"success":False, "message": "Account Not Created"}),400
+    # --- Validate inputs ---
+    if not all([firstName, lastName, userEmail, userPassword]):
+        return jsonify({"success": False, "message": "Missing required fields"}), 400
+
+    # --- Hash password ---
+    hashed_pw = bcrypt.hashpw(userPassword.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+    # --- Check if user already exists ---
+    userObj = db.query(User).filter(User.email == userEmail).first()
+    if userObj:
+        db.close()
+        return jsonify({"success": False, "message": "User already exists"}), 400
+
+    # --- Create new user ---
+    new_user = User(
+        fname=firstName,
+        lname=lastName,
+        email=userEmail,
+        password_hash=hashed_pw
+    )
+
+    db.add(new_user)
+    db.commit()
+    db.close()
+
+    return jsonify({"success": True, "message": "Account successfully created"}), 201
+
+
   
 
 # User login by Email
