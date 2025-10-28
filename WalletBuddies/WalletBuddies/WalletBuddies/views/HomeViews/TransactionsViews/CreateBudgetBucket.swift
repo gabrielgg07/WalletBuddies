@@ -7,13 +7,7 @@
 
 import SwiftUI
 
-struct BudgetBucket: Identifiable {
-    let id = UUID()
-    var category: String
-    var goal: Double
-    var color: Color
-    var description: String?
-}
+
 
 struct CreateBudgetBucketView: View {
     
@@ -25,6 +19,7 @@ struct CreateBudgetBucketView: View {
     @State private var showConfirmation: Bool = false
     
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var userData: UserDataManager
     private let categories: [String] = [
         "Food", "Rent", "Shopping", "Entertainment",
         "Travel", "Health", "Education", "Savings", "Miscellaneous"
@@ -50,7 +45,7 @@ struct CreateBudgetBucketView: View {
                     Spacer()
                     Spacer().frame(width: 36)
                 }
-                .padding(.horizontal)
+
                 .padding(.top, 10)
                 
                 ScrollView {
@@ -72,7 +67,7 @@ struct CreateBudgetBucketView: View {
                                     }
                                 }
                             }
-                            .padding(.horizontal)
+
                         }
                         
                         // Goal Amount
@@ -93,7 +88,7 @@ struct CreateBudgetBucketView: View {
                                 .padding()
                                 .background(Color.gray.opacity(0.1))
                                 .cornerRadius(10)
-                                .padding(.horizontal)
+
 
                         }
                         
@@ -103,7 +98,7 @@ struct CreateBudgetBucketView: View {
                                 .font(.headline)
                                 .foregroundColor(.gray)
                             ColorSelectionRow(selectedColor: $selectedColor)
-                                .padding(.horizontal)
+
                         }
                         
                         // Description
@@ -115,7 +110,7 @@ struct CreateBudgetBucketView: View {
                                 .padding()
                                 .background(Color.gray.opacity(0.1))
                                 .cornerRadius(10)
-                                .padding(.horizontal)
+
                         }
                         
                         // Save Button
@@ -133,7 +128,7 @@ struct CreateBudgetBucketView: View {
                                 .cornerRadius(14)
                                 .shadow(radius: 4)
                         }
-                        .padding(.horizontal)
+
                         .padding(.top, 10)
                         
                         if showConfirmation {
@@ -158,14 +153,14 @@ struct CreateBudgetBucketView: View {
                             }
                         }
                         
-                        Spacer(minLength: 40)
+                        //Spacer(minLength: 40)
                     }
                     .padding(.vertical, 10)
                 }
             }
             .background(Color.white.ignoresSafeArea())
+            .padding(.horizontal)
         }
-        .padding(.horizontal)
         .navigationBarHidden(true)
     }
     
@@ -180,6 +175,7 @@ struct CreateBudgetBucketView: View {
             description: description.isEmpty ? nil : description
         )
         createdBuckets.append(newBucket)
+        userData.addBucket(newBucket)
         goalAmount = ""
         description = ""
         selectedCategory = nil
@@ -206,7 +202,7 @@ struct CategoryChip: View {
         Text(text)
             .font(.subheadline.bold())
             .padding(.vertical, 8)
-            .padding(.horizontal, 16)
+
             .background(isSelected ? Color.green.opacity(0.2) : Color.gray.opacity(0.1))
             .foregroundColor(isSelected ? .green : .black)
             .cornerRadius(20)

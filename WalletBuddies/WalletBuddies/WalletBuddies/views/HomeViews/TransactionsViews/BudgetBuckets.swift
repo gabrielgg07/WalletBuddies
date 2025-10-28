@@ -8,15 +8,11 @@
 import SwiftUI
 
 struct BudgetBucketsView: View {
-    @State private var buckets: [BudgetBucket] = [
-        .init(category: "Food", goal: 400, color: .green),
-        .init(category: "Rent", goal: 1200, color: .blue),
-        .init(category: "Travel", goal: 600, color: .orange),
-        .init(category: "Entertainment", goal: 250, color: .pink)
-    ]
-    
+
     @State private var selectedBucket: BudgetBucket? = nil
     @State private var showingCreateView: Bool = false
+    @EnvironmentObject var userData: UserDataManager
+    @Environment(\.dismiss) private var dismiss
     
     private let columns = [
         GridItem(.flexible(), spacing: 16),
@@ -24,10 +20,23 @@ struct BudgetBucketsView: View {
     ]
     
     var body: some View {
-        NavigationStack {
+        VStack(alignment: .leading){
+            Button(action: { dismiss() }) {
+                Image(systemName: "xmark")
+                    .font(.headline)
+                    .foregroundColor(.black)
+                    .padding(8)
+                    .background(Color.gray.opacity(0.15))
+                    .clipShape(Circle())
+                    .padding(.leading, 4)
+            }
+            Text("your Buckets")
+                .font(.title3.bold())
+                .foregroundColor(.black)
+                .padding(.leading, 4)
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 20) {
-                    ForEach(buckets) { bucket in
+                    ForEach(userData.buckets) { bucket in
                         VStack(spacing: 8) {
                             Circle()
                                 .fill(bucket.color)

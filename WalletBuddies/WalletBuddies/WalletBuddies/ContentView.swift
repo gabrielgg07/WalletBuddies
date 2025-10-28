@@ -20,7 +20,7 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject var auth: AuthManager
     @State private var isLoggedIn = false
-    
+    @StateObject private var userData = UserDataManager.shared
     var body: some View {
         NavigationStack{
             if !auth.isLoggedIn {
@@ -37,6 +37,7 @@ struct ContentView: View {
             } else {
                 HomeView()
                     .environmentObject(auth)
+                    .environmentObject(userData)
             }
         }
     }
