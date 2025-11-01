@@ -7,9 +7,9 @@
 
 import Foundation
 
-struct SavingsGoal: Identifiable {
+struct SavingsGoal: Identifiable, Codable, Equatable, Hashable {
     let id: UUID
     let title: String
     let targetAmount: Double
-    var currentAmount: Double
+    var contributed: Double
 }
