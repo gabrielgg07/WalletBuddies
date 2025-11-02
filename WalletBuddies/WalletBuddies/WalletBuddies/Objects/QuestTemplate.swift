@@ -6,7 +6,7 @@
 //
 
 import Foundation
-
+// template of quests
 struct QuestTemplate: Identifiable, Codable {
     let id: UUID
     let title: String
