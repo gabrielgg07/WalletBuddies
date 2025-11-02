@@ -1,5 +1,7 @@
 import SwiftUI
-// list of quests
+
+// MARK: Possible quests
+// list of possible quests
 private let allQuestTemplates: [QuestTemplate] = [
     QuestTemplate(id: UUID(), title: "Track 3 expenses", description: "Add three new expenses to your log.", rewardXP: 50),
     QuestTemplate(id: UUID(), title: "Add 3 goals", description: "Set three new savings goals.", rewardXP: 100),
@@ -7,13 +9,9 @@ private let allQuestTemplates: [QuestTemplate] = [
     QuestTemplate(id: UUID(), title: "Invite a friend", description: "Share WalletBuddies with a friend.", rewardXP: 150)
 ]
 
-// MARK: - Popup View
 import SwiftUI
 
-
-
-
-
+// MARK: Home View
 struct HomeView: View {
     @EnvironmentObject var auth: AuthManager
     @State private var xpSystem = XPSystem(currentXp: 40, level: 1)
@@ -78,17 +76,7 @@ struct HomeView: View {
                 }
                 .tint(.green)
             }
-            Button(action: { showGoalsList = true }) {
-                Image(systemName: "target") // or any icon
-                    .font(.system(size: 22))
-                    .foregroundColor(.white)
-                    .padding(12)
-                    .background(Color.green)
-                    .clipShape(Circle())
-                    .shadow(radius: 4)
-            }
-            .padding(.leading, -358)
-            .padding(.top, -38)  // unsure why it has to be different value
+
             // === Quest button (now higher & to the right) ===
             Button(action: { showQuests = true }) {
                 Image(systemName: "scroll.fill")

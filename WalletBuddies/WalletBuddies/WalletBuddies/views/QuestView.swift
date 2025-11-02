@@ -10,7 +10,7 @@ import SwiftUI
 
 
 // MARK: - QUEST CARD
-
+// QuestCardView: the information of a quest on a card. used by the quests popup to display all of a user's quests
 struct QuestCardView: View {
     let quest: QuestTemplate
     
@@ -42,7 +42,7 @@ struct QuestCardView: View {
 }
 
 // MARK: - QUESTS POPUP
-
+// QuestsPopupView: the popup that shows the user's quests
 struct QuestsPopupView: View {
     @Binding var isPresented: Bool
     let quests: [QuestTemplate]
@@ -58,6 +58,7 @@ struct QuestsPopupView: View {
             VStack(spacing: 12) {
                 HStack {
                     Spacer()
+                    // closes the popup
                     Button(action: {isPresented = false}) {
                         Image(systemName: "xmark.circle.fill")
                             .font(.title)
@@ -71,9 +72,10 @@ struct QuestsPopupView: View {
                     .font(.title2)
                     .bold()
                     .padding(.bottom, 5)
-                
+                // allows for scrolling in the quests pop up
                 ScrollView {
                     VStack(spacing: 10) {
+                        // draws the quest card for each quest given to a user
                         ForEach(quests) { quest in
                             QuestCardView(quest: quest)
                         }
@@ -88,6 +90,7 @@ struct QuestsPopupView: View {
             .padding()
             .transition(.scale)
         }
+        // animation for the card
         .animation(.easeInOut(duration: 0.2), value: isPresented)
     }
 }

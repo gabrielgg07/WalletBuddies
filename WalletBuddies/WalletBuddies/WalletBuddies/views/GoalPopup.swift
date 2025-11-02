@@ -7,11 +7,14 @@
 
 import SwiftUI
 
-
+// SavingsGoalDetailPopupView: Pop Up used by GoalsTabView that show the details of the SavingsGoal
 struct SavingsGoalDetailPopupView: View {
     @Binding var isPresented: Bool
+    // goalManager
     @ObservedObject var goalManager: SavingsGoalManager
+    // selected goal
     @Binding var goal: SavingsGoal
+    // variable used for the contribution amount box
     @State private var contributionAmount: Double? = nil
 
     var body: some View {
@@ -22,6 +25,7 @@ struct SavingsGoalDetailPopupView: View {
             VStack(spacing: 20) {
                 HStack {
                     Spacer()
+                    // button for closing
                     Button(action: { isPresented = false }) {
                         Image(systemName: "xmark.circle.fill")
                             .font(.title2)
@@ -36,7 +40,7 @@ struct SavingsGoalDetailPopupView: View {
                         .stroke(lineWidth: 20)
                         .opacity(0.2)
                         .foregroundColor(.green)
-
+                    // fills the circle based on the amount contributed to the goal
                     Circle()
                         .trim(from: 0.0, to: min(goal.contributed / goal.targetAmount, 1.0))
                         .stroke(
@@ -47,8 +51,10 @@ struct SavingsGoalDetailPopupView: View {
                         .animation(.easeInOut, value: goal.contributed)
 
                     VStack {
-                        Text(String(format: "%.0f / %.0f", goal.contributed, goal.targetAmount))
+                        // number in the middle of the circle
+                        Text(String(format: "$%.0f / $%.0f", goal.contributed, goal.targetAmount))
                             .font(.headline)
+                        // title in the middle of the circle
                         Text(goal.title)
                             .font(.caption)
                             .foregroundColor(.secondary)
@@ -58,12 +64,13 @@ struct SavingsGoalDetailPopupView: View {
 
                 // Contribution input
                 HStack {
+                    // contribution amount inputs only as numbers
                     TextField("Amount", value: $contributionAmount, format: .number)
                         .keyboardType(.decimalPad)
                         .padding(8)
                         .background(Color.gray.opacity(0.1))
                         .cornerRadius(8)
-
+                    // Confirmation button
                     Button("Contribute") {
                         if let amount = contributionAmount, amount > 0 {
                             goalManager.contribute(to: goal, amount: amount)
