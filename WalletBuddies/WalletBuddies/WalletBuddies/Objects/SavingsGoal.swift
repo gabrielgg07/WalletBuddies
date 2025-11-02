@@ -2,14 +2,14 @@
 //  SavingsGoal.swift
 //  WalletBuddies
 //
-//  Created by lending on 10/25/25.
+//  Created by Walter Pereira Cruz on 10/25/25.
 //
 
 import Foundation
-
-struct SavingsGoal: Identifiable {
+// basic struct for easy access of SavingsGoal variables
+struct SavingsGoal: Identifiable, Codable, Equatable, Hashable {
     let id: UUID
     let title: String
     let targetAmount: Double
-    var currentAmount: Double
+    var contributed: Double
 }
