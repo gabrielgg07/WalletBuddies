@@ -13,10 +13,10 @@ import bcrypt
 
 user_bp = Blueprint("user_bp", __name__)
 
-# Signup 
+# Signup
 
-@user_bp.route('/signup', methods=["POST"])
-def createAcc():
+@user_bp.route('/adminSignup', methods=["POST"])
+def createAdminAccount():
     db = SessionLocal()
     signupData = request.get_json() or {}
     print(signupData)
@@ -25,9 +25,10 @@ def createAcc():
     lastName = signupData.get('lastName')
     userEmail = signupData.get('emailAddress', '').lower()
     userPassword = signupData.get('password')
+    roleA = 'admin'
 
     # --- Validate inputs ---
-    if not all([firstName, lastName, userEmail, userPassword]):
+    if not all([firstName, lastName, userEmail, userPassword,roleA]):
         return jsonify({"success": False, "message": "Missing required fields"}), 400
 
     # --- Hash password ---
@@ -44,7 +45,49 @@ def createAcc():
         fname=firstName,
         lname=lastName,
         email=userEmail,
-        password_hash=hashed_pw
+        password_hash=hashed_pw,
+        role = roleA
+    )
+
+    db.add(new_user)
+    db.commit()
+    db.close()
+
+    return jsonify({"success": True, "message": "Account successfully created"}), 201
+
+
+@user_bp.route('/signup', methods=["POST"])
+def createAccount():
+    db = SessionLocal()
+    signupData = request.get_json() or {}
+    print(signupData)
+
+    firstName = signupData.get('firstName')
+    lastName = signupData.get('lastName')
+    userEmail = signupData.get('emailAddress', '').lower()
+    userPassword = signupData.get('password')
+    roleU ='user'
+
+    # --- Validate inputs ---
+    if not all([firstName, lastName, userEmail, userPassword,roleU]):
+        return jsonify({"success": False, "message": "Missing required fields"}), 400
+
+    # --- Hash password ---
+    hashed_pw = bcrypt.hashpw(userPassword.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+    # --- Check if user already exists ---
+    userObj = db.query(User).filter(User.email == userEmail).first()
+    if userObj:
+        db.close()
+        return jsonify({"success": False, "message": "User already exists"}), 400
+
+    # --- Create new user ---
+    new_user = User(
+        fname=firstName,
+        lname=lastName,
+        email=userEmail,
+        password_hash=hashed_pw,
+        role = roleU
     )
 
     db.add(new_user)
@@ -96,23 +139,34 @@ def logIn():
     finally:
         db.close()
 
-#Delete user
-@user_bp.route('/deleteUser',methods=["POST"])
-def deleteUser():
-   get_database = SessionLocal()
-   deleteFormData = request.get_json() or {}
-   print(deleteFormData)
-   userEmail = deleteFormData.get('emailAddress').lower()
-   userPassword = deleteFormData.get('password')
-   userObj = get_database.query(User).filter(User.email == userEmail).first()
-   if not userObj:
-       return jsonify({"success": False, "message": "No user to delete"}),400
-   elif userEmail == userObj.email and bcrypt.checkpw(userPassword.encode('utf-8'),userObj.password_hash.encode('utf-8')):
-       get_database.delete(userObj)
-       get_database.commit()
-       get_database.close()
-       return jsonify({"success":True, "message": "User Deleted"}),200
-   return jsonify({"success": False, "message": "Not successful"}),400
+
+
+@user_bp.route('/updateUserPrivilege',methods=["POST"])
+def updateUserPrivileges():
+    get_database = SessionLocal()
+    updateFormData = request.get_json() or {}
+    print(updateFormData)
+    requestRole = updateFormData.get('requestRole')
+    print(requestRole)
+    targetUserEmail = updateFormData.get('targetUserEmail').lower()
+    userObj = get_database.query(User).filter(User.email == targetUserEmail).first()
+
+    if requestRole != 'admin' or not userObj:
+        return jsonify({"success": False, "message": "Not allowed"}),400
+    else:
+
+        if userObj.role == 'admin':
+            userObj.role = 'user'
+            get_database.commit()
+            get_database.close()
+            return jsonify({"success":True, "message": "Role changed to user"}),200
+        elif userObj.role == 'user':
+            userObj.role = 'admin'
+            get_database.commit()
+            get_database.close()
+            return jsonify({"success":True, "message": "Role changed to admin"}),200
+    return jsonify({"success": False, "message": "Not successful"}), 200
+
 
 # -------------------------------
 # 🧱 Create new user
