@@ -63,6 +63,12 @@ struct LoginWithEmailView: View{
                 .disabled(duringIncompleteForm)
                 .tint(.black)
                 .opacity(duringIncompleteForm ? 0.7 : 1.0)
+
+                Spacer()
+
+                NavigationLink("Sign Up to create an account."){
+                SignupView()
+            }.foregroundStyle(.white)
             
         }
     }
@@ -127,7 +133,6 @@ func ClearFields(){
 }
         
 }
-
 
 #Preview{
     NavigationStack{

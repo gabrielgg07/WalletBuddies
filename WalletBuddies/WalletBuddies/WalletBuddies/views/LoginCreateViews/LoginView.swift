@@ -57,7 +57,7 @@ struct LoginView: View{
             Spacer()
             
             NavigationLink("Sign Up to create an account."){
-                signupView()
+                SignupView()
             }.foregroundStyle(.white)
             
         }.frame(maxWidth:.infinity,maxHeight:.infinity,alignment:.center)
