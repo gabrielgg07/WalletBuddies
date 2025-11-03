@@ -1,7 +1,8 @@
 //
 //  signupView.swift
 //  WalletBuddies
-//  Created by Gia Subedi on 11/10/2025.
+//
+//  Created by Gia Subedi on 11/3/25.
 //
 
 import SwiftUI
