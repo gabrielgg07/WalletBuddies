@@ -167,6 +167,24 @@ def updateUserPrivileges():
             return jsonify({"success":True, "message": "Role changed to admin"}),200
     return jsonify({"success": False, "message": "Not successful"}), 200
 
+#Delete user
+@user_bp.route('/deleteUser',methods=["POST"])
+def deleteUser():
+   get_database = SessionLocal()
+   deleteFormData = request.get_json() or {}
+   print(deleteFormData)
+   userEmail = deleteFormData.get('emailAddress').lower()
+   userPassword = deleteFormData.get('password')
+   userObj = get_database.query(User).filter(User.email == userEmail).first()
+   if not userObj:
+       return jsonify({"success": False, "message": "No user to delete"}),400
+   elif userEmail == userObj.email and bcrypt.checkpw(userPassword.encode('utf-8'),userObj.password_hash.encode('utf-8')):
+       get_database.delete(userObj)
+       get_database.commit()
+       get_database.close()
+       return jsonify({"success":True, "message": "User Deleted"}),200
+   return jsonify({"success": False, "message": "Not successful"}),400
+
 
 # -------------------------------
 # 🧱 Create new user
