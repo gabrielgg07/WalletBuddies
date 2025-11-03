@@ -185,7 +185,6 @@ def deleteUser():
        return jsonify({"success":True, "message": "User Deleted"}),200
    return jsonify({"success": False, "message": "Not successful"}),400
 
-
 # -------------------------------
 # 🧱 Create new user
 # -------------------------------
