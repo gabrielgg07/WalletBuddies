@@ -1,12 +1,13 @@
 //
 //  signupView.swift
 //  WalletBuddies
-//  Created by Gia Subedi on 11/10/2025.
+//
+//  Created by Gia Subedi on 11/3/25.
 //
 
 import SwiftUI
 
-struct SignupView: View{
+struct signupView: View{
     @State private var fName = ""
     @State private var lName = ""
     @State private var userEmail = ""
@@ -197,6 +198,6 @@ struct SignupView: View{
 
 #Preview {
     NavigationStack{
-        SignupView()
+        signupView()
     }
 }
