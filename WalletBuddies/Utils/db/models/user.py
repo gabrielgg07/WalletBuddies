@@ -17,6 +17,7 @@ class User(Base):
     lname =  Column(Text, nullable=True)
     email = Column(Text, unique=True, nullable=False)
     password_hash = Column(Text, nullable=False)
+    role = Column(Text, nullable=False)
     created_at = Column(TIMESTAMP, default=datetime.utcnow)
     updated_at = Column(TIMESTAMP, default=datetime.utcnow, onupdate=datetime.utcnow)
 
