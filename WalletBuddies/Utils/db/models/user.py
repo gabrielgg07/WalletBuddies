@@ -13,8 +13,7 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    fname = Column(Text, nullable=False)
-    lname =  Column(Text, nullable=True)
+    name = Column(Text, nullable=False)
     email = Column(Text, unique=True, nullable=False)
     password_hash = Column(Text, nullable=False)
     role = Column(Text, nullable=False)

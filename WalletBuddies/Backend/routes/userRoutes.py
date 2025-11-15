@@ -21,14 +21,13 @@ def createAdminAccount():
     signupData = request.get_json() or {}
     print(signupData)
 
-    firstName = signupData.get('firstName')
-    lastName = signupData.get('lastName')
+    userName = signupData.get('userName')
     userEmail = signupData.get('emailAddress', '').lower()
     userPassword = signupData.get('password')
     roleA = 'admin'
 
     # --- Validate inputs ---
-    if not all([firstName, lastName, userEmail, userPassword,roleA]):
+    if not all([userName, userEmail, userPassword,roleA]):
         return jsonify({"success": False, "message": "Missing required fields"}), 400
 
     # --- Hash password ---
@@ -42,8 +41,7 @@ def createAdminAccount():
 
     # --- Create new user ---
     new_user = User(
-        fname=firstName,
-        lname=lastName,
+        name = userName,
         email=userEmail,
         password_hash=hashed_pw,
         role = roleA
@@ -62,14 +60,13 @@ def createAccount():
     signupData = request.get_json() or {}
     print(signupData)
 
-    firstName = signupData.get('firstName')
-    lastName = signupData.get('lastName')
+    userName = signupData.get('userName')
     userEmail = signupData.get('emailAddress', '').lower()
     userPassword = signupData.get('password')
     roleU ='user'
 
     # --- Validate inputs ---
-    if not all([firstName, lastName, userEmail, userPassword,roleU]):
+    if not all([userName, userEmail, userPassword,roleU]):
         return jsonify({"success": False, "message": "Missing required fields"}), 400
 
     # --- Hash password ---
@@ -83,8 +80,7 @@ def createAccount():
 
     # --- Create new user ---
     new_user = User(
-        fname=firstName,
-        lname=lastName,
+        name = userName,
         email=userEmail,
         password_hash=hashed_pw,
         role = roleU
@@ -126,9 +122,9 @@ def logIn():
             "message": "Logged In",
             "user": {
                 "id": user.id,
-                "first_name": user.fname,
-                "last_name": user.lname,
+                "name" : user.name,
                 "email": user.email,
+                "role" : user.role,
                 "created_at": user.created_at.isoformat() if user.created_at else None
             }
         }), 200
@@ -168,22 +164,39 @@ def updateUserPrivileges():
     return jsonify({"success": False, "message": "Not successful"}), 200
 
 #Delete user
-@user_bp.route('/deleteUser',methods=["POST"])
+@user_bp.route('/deleteAccount',methods=["DELETE"])
 def deleteUser():
    get_database = SessionLocal()
    deleteFormData = request.get_json() or {}
    print(deleteFormData)
-   userEmail = deleteFormData.get('emailAddress').lower()
-   userPassword = deleteFormData.get('password')
+   userEmail = deleteFormData.get('userEmail')
    userObj = get_database.query(User).filter(User.email == userEmail).first()
    if not userObj:
        return jsonify({"success": False, "message": "No user to delete"}),400
-   elif userEmail == userObj.email and bcrypt.checkpw(userPassword.encode('utf-8'),userObj.password_hash.encode('utf-8')):
+   elif userEmail == userObj.email:
        get_database.delete(userObj)
        get_database.commit()
        get_database.close()
        return jsonify({"success":True, "message": "User Deleted"}),200
    return jsonify({"success": False, "message": "Not successful"}),400
+
+@user_bp.route('/deleteUserAccount',methods=["DELETE"])
+def deleteUserAccount():
+    get_database = SessionLocal()
+    deleteFormData = request.get_json() or {}
+    print(deleteFormData)
+    requestRole = deleteFormData.get('requestRole')
+    print(requestRole)
+    targetUserEmail = deleteFormData.get('targetUserEmail').lower()
+    userObj = get_database.query(User).filter(User.email == targetUserEmail).first()
+
+    if requestRole != 'admin' or not userObj:
+        return jsonify({"success": False, "message": "Not allowed"}),400
+    else:
+        get_database.delete(userObj)
+        get_database.commit()
+        get_database.close()
+        return jsonify({"success": True, "message": "User Deleted"}), 200
 
 # -------------------------------
 # 🧱 Create new user
