@@ -10,7 +10,6 @@ import SwiftUI
 
 struct LoginView: View{
     @State private var userEmail = ""
-    @State private var userPassword = ""
     @EnvironmentObject var auth: AuthManager
     
     
@@ -25,9 +24,42 @@ struct LoginView: View{
             
             Text("Welcome to WalletBuddies").font(.title2)
                 .padding(.vertical,30)
-            LoginWithEmailView(email : userEmail)
-
-            if true {
+    
+            
+            TextField("Email Address", text : $userEmail)
+                .textFieldStyle(.roundedBorder)
+                .disableAutocorrection(true)
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 20)
+                .textInputAutocapitalization(.never)
+            
+            if #available(iOS 26.0, *) {
+                Button{
+                    print("button was clicked")
+                    if duringIncompleteForm != true{
+                        auth.tempEmail = userEmail
+                        auth.tryLogin = true
+                    }
+                    
+                } label:{
+                    HStack{
+                        Text("Log In")
+                        Image(systemName:"arrow.right")
+                    }.frame(maxWidth: .infinity)
+                    
+                }.buttonStyle(.glassProminent)
+                    .frame(maxWidth: .infinity)
+                    .buttonBorderShape(.roundedRectangle)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.white)
+                    .padding(.vertical,10)
+                    .padding(.horizontal,20)
+                    .tint(.black)
+            } else {
+                // Fallback on earlier versions
+            }
+            
+            if #available(iOS 26.0, *) {
                 Button {
                     if let rootVC = UIApplication.shared
                         .connectedScenes
@@ -47,17 +79,19 @@ struct LoginView: View{
                         .padding(.vertical,3)
                     
                 }
-                //.buttonStyle(.glassProminent)
+                .buttonStyle(.glassProminent)
                 .tint(.black)
                 .padding(.horizontal)
             } else {
                 // Fallback on earlier versions
             }
             
+            
             Spacer()
             
+            
             NavigationLink("Sign Up to create an account."){
-                SignupView()
+                SignupView(email:userEmail)
             }.foregroundStyle(.white)
             
         }.frame(maxWidth:.infinity,maxHeight:.infinity,alignment:.center)
@@ -70,3 +104,8 @@ func loginWithEmail(){
     print("Move to next page")
 }
 
+#Preview {
+    NavigationStack{
+        LoginView()
+    }
+}
