@@ -130,6 +130,32 @@ struct HomeView: View {
 }
 
 
+// MARK: Admin Home View
+struct AdminHomeView: View {
+    @EnvironmentObject var auth: AuthManager
+    
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            VStack(spacing: 10) {
+                
+                // === Tab view ===
+                TabView {
+                    AdminDatabaseView()
+                        .tabItem { Label("Home", systemImage: "house.fill") }
+                    AdminAccountView()
+                        .tabItem { Label("Settings", systemImage: "person.crop.circle") }
+                        .environmentObject(auth)
+                }
+                .tint(.green)
+            }
+            
+            
+            
+        }
+    }
+}
+
+
 
 #Preview {
     HomeView()

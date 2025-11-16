@@ -18,10 +18,10 @@ struct LoginResponse: Codable {
 
 struct UserData: Codable {
     let id: Int
-    let first_name: String
-    let last_name: String?
+    let name: String
     let email: String
     let created_at: String
+    let role: String
 }
 
 
@@ -31,9 +31,19 @@ class AuthManager: ObservableObject {
             UserDefaults.standard.set(isPlaidLinked, forKey: "isPlaidLinked")
         }
     }
+    @Published var tryLogin: Bool = false {
+        didSet {
+            UserDefaults.standard.set(tryLogin, forKey: "tryLogin")
+        }
+    }
     @Published var isLoggedIn: Bool = false {
         didSet {
             UserDefaults.standard.set(isLoggedIn, forKey: "isLoggedIn")
+        }
+    }
+    @Published var loginSource: String = "Email" {
+        didSet {
+            UserDefaults.standard.set(loginSource, forKey: "loginSource")
         }
     }
     @Published var name: String = "" {
@@ -41,8 +51,6 @@ class AuthManager: ObservableObject {
             UserDefaults.standard.set(name, forKey: "userName")
         }
     }
-    
-
     @Published var email: String = UserDefaults.standard.string(forKey: "userEmail") ?? "" {
         didSet {
             UserDefaults.standard.set(email, forKey: "userEmail")
@@ -52,6 +60,21 @@ class AuthManager: ObservableObject {
     @Published var userId: Int = UserDefaults.standard.integer(forKey: "userId") {
         didSet {
             UserDefaults.standard.set(userId, forKey: "userId")
+        }
+    }
+    @Published var gidToken: String = UserDefaults.standard.string(forKey: "gidToken") ?? "" {
+        didSet {
+            UserDefaults.standard.set(gidToken, forKey: "gidToken")
+        }
+    }
+    @Published var role: String = UserDefaults.standard.string(forKey: "accountRole") ?? "" {
+        didSet {
+            UserDefaults.standard.set(role, forKey: "accountRole")
+        }
+    }
+    @Published var tempEmail: String = UserDefaults.standard.string(forKey: "tempEmail") ?? "" {
+        didSet {
+            UserDefaults.standard.set(tempEmail, forKey: "tempEmail")
         }
     }
     
@@ -67,41 +90,79 @@ class AuthManager: ObservableObject {
     func handleSignupSuccess(name: String, email: String) {
         self.name = name
         self.email = email
+        self.role = role
         self.isLoggedIn = true
 
         UserDefaults.standard.set(true, forKey: "isLoggedIn")
         UserDefaults.standard.set(name, forKey: "userName")
         UserDefaults.standard.set(email, forKey: "userEmail")
+        UserDefaults.standard.set(role, forKey: "accountRole")
+
+        
 
         print("✅ User signed up & logged in: \(email)")
     }
 
     func handleLoginResponse(user: UserData) {
-        let fullName = [user.first_name, user.last_name].compactMap { $0 }.joined(separator: " ")
-        handleSignupSuccess(name: fullName, email: user.email)
+        self.name = user.name
+        self.role = user.role
+        handleSignupSuccess(name: user.name, email: user.email)
     }
     
 
 
     func signOut() {
         self.isLoggedIn = false
+        self.tryLogin = false
+        self.loginSource = "Email"
+        self.tempEmail = ""
         self.name = ""
         self.email = ""
+        self.role = ""
+        self.gidToken = ""
         self.isPlaidLinked = false
 
         UserDefaults.standard.removeObject(forKey: "isLoggedIn")
         UserDefaults.standard.removeObject(forKey: "userName")
         UserDefaults.standard.removeObject(forKey: "userEmail")
+        UserDefaults.standard.removeObject(forKey: "accountRole")
+        UserDefaults.standard.removeObject(forKey: "tryLogin")
 
         print("👋 Logged out successfully")
     }
     
+    func clearValues(){
+        self.isLoggedIn = false
+        self.tryLogin = false
+        self.loginSource = "Email"
+        self.tempEmail = ""
+        self.name = ""
+        self.email = ""
+        self.role = ""
+        self.gidToken = ""
+        self.isPlaidLinked = false
+
+        UserDefaults.standard.removeObject(forKey: "isLoggedIn")
+        UserDefaults.standard.removeObject(forKey: "userName")
+        UserDefaults.standard.removeObject(forKey: "userEmail")
+        UserDefaults.standard.removeObject(forKey: "accountRole")
+        UserDefaults.standard.removeObject(forKey: "tryLogin")
+    }
+    
     
     func restorePreviousSignIn() {
+        self.clearValues()
         GIDSignIn.sharedInstance.restorePreviousSignIn { user, error in
             if let user = user {
                 DispatchQueue.main.async {
                     self.name = user.profile?.name ?? "Anonymous"
+                    self.loginSource = "Google"
+                    self.email = user.profile?.email
+                    ?? UserDefaults.standard.string(forKey: "userEmail")
+                    ?? ""
+                    if self.role == ""{
+                        self.role = "user"
+                    }
                     self.isLoggedIn = true
                     self.isPlaidLinked = true
                     print("✅ Restored session for: \(user.profile?.email ?? "unknown email")")
@@ -132,16 +193,40 @@ class AuthManager: ObservableObject {
         }
     }
     
+    func submitSignupForm(){
+        guard let signupURL = URL(string:"http://127.0.0.1:5001/api/users/signup") else {return}
+        let payload : [String:Any] = ["userName" : self.name, "emailAddress" : self.email, "GID_Token" : self.gidToken, "source" : self.loginSource ]
+        var sendRequest = URLRequest(url : signupURL)
+        sendRequest.httpMethod = "POST"
+        sendRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        sendRequest.httpBody = try? JSONSerialization.data(withJSONObject: payload)
+        
+        URLSession.shared.dataTask(with: sendRequest){ data, _, _ in
+            if let data = data{
+                print(String(data:data,encoding: .utf8) ?? "")
+            }
+            
+        }.resume()
+        
+        
+    }
+    
     func deleteAccount() {
 
-        guard let url = URL(string: "\(BaseURL)/api/users/delete/\(self.userId)") else {
+        guard let url = URL(string: "\(BaseURL)/api/users/deleteAccount") else {
             print("❌ Invalid URL")
             return
+            
         }
-
+        let payload : [String: Any] = [
+            "userEmail" : self.email
+        ]
         var request = URLRequest(url: url)
 
         request.httpMethod = "DELETE"
+        
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
 
 
         URLSession.shared.dataTask(with: request) { data, response, error in
@@ -191,7 +276,16 @@ class AuthManager: ObservableObject {
                 print("❌ No user returned from Google Sign-In")
                 return
             }
+            guard let idToken = user.idToken?.tokenString else{
+                print("❌ No GID token")
+                return
+            }
             self.name = user.profile?.name ?? "Anonymous"
+            self.email = user.profile?.email ?? ""
+            self.gidToken = idToken
+            self.loginSource = "Google"
+            self.submitSignupForm()
+            
             print("✅ Signed in as: \(user.profile?.email ?? "unknown email")")
             
             
@@ -218,12 +312,10 @@ class AuthManager: ObservableObject {
             
             DispatchQueue.main.async {
                 self.isLoggedIn = true
+                self.handleSignupSuccess(name: self.name, email: self.email)
+
             }
         }
-        
-        
-
-        
         
     }
 }

@@ -11,6 +11,7 @@ struct HomeTabView: View {
     @State private var balance: Double = 2540.75
     @State private var monthlySpending: Double = 892.30
     @State private var savingsGoal: Double = 5000.00
+    @EnvironmentObject var auth: AuthManager
 
     @State private var showAddExpense = false
     @State private var showReports = false
@@ -24,7 +25,9 @@ struct HomeTabView: View {
 
                     // MARK: - Welcome Header
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Good Afternoon, Gabriel")
+
+                        Text("Good Afternoon, " + auth.name + " 👋")
+
                             .font(.title2.bold())
                         Text("Here’s your financial snapshot:")
                             .font(.subheadline)
@@ -177,6 +180,3 @@ struct HomeTabView: View {
     }
 }
 
-#Preview {
-    HomeTabView()
-}
