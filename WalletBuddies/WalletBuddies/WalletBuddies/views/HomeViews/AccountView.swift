@@ -39,6 +39,16 @@ struct AccountTabView: View {
     @EnvironmentObject var auth: AuthManager
     @State private var showMailView = false
     @State private var showMailError = false
+    
+    @State private var showEditProfile = false
+    @State private var showSecurity = false
+    @State private var showNotifications = false
+    @State private var showPayments = false
+    @State private var showBackup = false
+    @State private var showPreferences = false
+    @State private var showHelp = false
+    @State private var showTerms = false
+
 
     var body: some View {
         ScrollView {
@@ -70,11 +80,21 @@ struct AccountTabView: View {
 
                     VStack(spacing: 10) {
                         accountRow(icon: "person.text.rectangle", title: "Edit Profile")
+                            .onTapGesture { showEditProfile = true }
                         accountRow(icon: "lock.shield", title: "Security Settings")
+                            .onTapGesture { showSecurity = true }
                         accountRow(icon: "bell", title: "Notifications")
+                            .onTapGesture { showNotifications = true }
                         accountRow(icon: "creditcard", title: "Payment Methods")
+                            .onTapGesture { showPayments = true }
                         accountRow(icon: "arrow.triangle.2.circlepath", title: "Backup & Sync")
+                            .onTapGesture { showBackup = true }
                     }
+                    .fullScreenCover(isPresented: $showEditProfile) { EditProfileView() }
+                    .fullScreenCover(isPresented: $showSecurity) { SecuritySettingsView() }
+                    .fullScreenCover(isPresented: $showNotifications) { NotificationsView() }
+                    .fullScreenCover(isPresented: $showPayments) { PaymentMethodsView() }
+                    .fullScreenCover(isPresented: $showBackup) { BackupSyncView() }
                     .background(Color(.systemGray6))
                     .cornerRadius(12)
                     .padding(.horizontal)
@@ -88,9 +108,15 @@ struct AccountTabView: View {
 
                     VStack(spacing: 10) {
                         accountRow(icon: "gearshape", title: "Preferences")
+                            .onTapGesture { showPreferences = true }
                         accountRow(icon: "questionmark.circle", title: "Help & Support")
+                            .onTapGesture { showHelp = true }
                         accountRow(icon: "doc.text", title: "Terms & Privacy")
+                            .onTapGesture { showTerms = true }
                     }
+                    .fullScreenCover(isPresented: $showPreferences) { PreferencesView() }
+                    .fullScreenCover(isPresented: $showHelp) { HelpSupportView() }
+                    .fullScreenCover(isPresented: $showTerms) { TermsPrivacyView() }
                     .background(Color(.systemGray6))
                     .cornerRadius(12)
                     .padding(.horizontal)

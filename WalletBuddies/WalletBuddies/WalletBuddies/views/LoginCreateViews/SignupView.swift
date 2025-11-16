@@ -146,7 +146,7 @@ struct SignupView: View{
     }
     
     private func submitSignupForm(){
-        guard let signupURL = URL(string:"http://127.0.0.1:5001/api/users/signup") else {return}
+        guard let signupURL = URL(string:"\(BaseURL)/api/users/signup") else {return}
         let payload : [String: Any] = [
             "firstName" : fName,
             "lastName" : lName,

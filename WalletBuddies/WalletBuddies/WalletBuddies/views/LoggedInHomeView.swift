@@ -20,6 +20,10 @@ struct HomeView: View {
     @State private var showGoalDetail = false
     @State private var showQuests = false
     @StateObject private var questManager: QuestManager
+    @State private var selectedTab = 0
+    @State private var showPlantFullscreen = false
+
+
     
     init() {
         _questManager = StateObject(wrappedValue: QuestManager(userID: "user123", questTemplates: allQuestTemplates))
@@ -29,68 +33,77 @@ struct HomeView: View {
             VStack(spacing: 10) {
                 
                 // === XP Section ===
-                VStack(spacing: 10) {
-                    Text("Level \(xpSystem.level)")
-                        .font(.headline)
-
-                    ZStack(alignment: .leading) {
-                        Rectangle()
-                            .fill(Color.gray.opacity(0.3))
-                            .frame(height: 20)
-                            .cornerRadius(8)
-
-                        Rectangle()
-                            .fill(LinearGradient(
-                                gradient: Gradient(colors: [.green, .accentColor]),
-                                startPoint: .leading,
-                                endPoint: .trailing))
-                            .frame(width: 300 * xpSystem.progressPercent(), height: 20)
-                            .cornerRadius(8)
-                            .animation(.easeInOut, value: xpSystem.progressPercent())
+                if selectedTab != 2 {
+                    VStack(spacing: 10) {
+                        Text("Level \(xpSystem.level)")
+                            .font(.headline)
+                        
+                        ZStack(alignment: .leading) {
+                            Rectangle()
+                                .fill(Color.gray.opacity(0.3))
+                                .frame(height: 20)
+                                .cornerRadius(8)
+                            
+                            Rectangle()
+                                .fill(LinearGradient(
+                                    gradient: Gradient(colors: [.green, .accentColor]),
+                                    startPoint: .leading,
+                                    endPoint: .trailing))
+                                .frame(width: 300 * xpSystem.progressPercent(), height: 20)
+                                .cornerRadius(8)
+                                .animation(.easeInOut, value: xpSystem.progressPercent())
+                        }
+                        .frame(width: 300)
+                        
+                        Text("\(xpSystem.currentXp)/\(xpSystem.requiredXP(for: xpSystem.level)) XP")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                     }
-                    .frame(width: 300)
-
-                    Text("\(xpSystem.currentXp)/\(xpSystem.requiredXP(for: xpSystem.level)) XP")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
                 }
-
+                
                 Spacer()
                 
-
+                
                 Spacer()
-
+                
                 // === Tab view ===
-                TabView {
+                TabView(selection: $selectedTab) {
                     HomeTabView()
                         .tabItem { Label("Home", systemImage: "house.fill") }
+                        .tag(0)
                     TransactionsTabView()
                         .tabItem { Label("Transactions", systemImage: "clock.arrow.circlepath") }
-                    PlantTabView()
+                        .tag(1)
+                    Color.clear
                         .tabItem { Label("Plants", systemImage: "leaf.fill") }
+                        .tag(2)
                     GoalsTabView()
                         .tabItem { Label("Goals", systemImage: "target") }
+                        .tag(3)
                     AccountTabView()
                         .tabItem { Label("Settings", systemImage: "person.crop.circle") }
                         .environmentObject(auth)
+                        .tag(4)
                 }
                 .tint(.green)
             }
-
+            
             // === Quest button (now higher & to the right) ===
-            Button(action: { showQuests = true }) {
-                Image(systemName: "scroll.fill")
-                    .font(.system(size: 22))
-                    .foregroundColor(.white)
-                    .padding(12)
-                    .background(Color.green)
-                    .clipShape(Circle())
-                    .shadow(radius: 4)
+            if selectedTab != 2 {
+                Button(action: { showQuests = true }) {
+                    Image(systemName: "scroll.fill")
+                        .font(.system(size: 22))
+                        .foregroundColor(.white)
+                        .padding(12)
+                        .background(Color.green)
+                        .clipShape(Circle())
+                        .shadow(radius: 4)
+                }
+                // slightly lower right padding so it’s visible but not cut off
+                .padding(.trailing, 50)
+                // pull it up a bit more
+                .padding(.top, 70)
             }
-            // slightly lower right padding so it’s visible but not cut off
-            .padding(.trailing, 50)
-            // pull it up a bit more
-            .padding(.top, -40)
         }
         .overlay(
             // Quests popup overlay
@@ -103,6 +116,16 @@ struct HomeView: View {
                 
             }
         )
+        .fullScreenCover(isPresented: $showPlantFullscreen) {
+            PlantTabView()
+        }
+        .onChange(of: selectedTab) { newValue in
+            if newValue == 2 {
+                showPlantFullscreen = true
+                selectedTab = 0   // keep UI on Home (optional)
+            }
+        }
+
     }
 }
 
