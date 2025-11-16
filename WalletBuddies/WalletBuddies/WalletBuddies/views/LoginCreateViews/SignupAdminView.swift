@@ -1,13 +1,13 @@
 //
-//  signupView.swift
+//  SignupAdminView.swift
 //  WalletBuddies
 //
-//  Created by Gia Subedi on 11/3/25.
+//  Created by Gia Subedi on 11/14/25.
 //
 
 import SwiftUI
 
-struct SignupView: View{
+struct SignupAdminView: View{
     @State private var userName = ""
     @State private var fName = ""
     @State private var lName = ""
@@ -16,12 +16,12 @@ struct SignupView: View{
     @State private var checkPassword = ""
     @State private var accountCreated = false
     @State private var displayName = ""
-    @State private var userAlreadyExists = false
     
     @EnvironmentObject  var auth: AuthManager
     init(email:String){
         _userEmail = State(initialValue: email)
     }
+    
     
     @FocusState private var inFocusFeild : Field?
     enum Field{
@@ -53,16 +53,7 @@ struct SignupView: View{
         
         VStack(alignment:.center, spacing:35, content: {
             
-            Text("Create a Profile").fontWeight(.heavy)       .foregroundStyle(Color.white)
-            
-            ZStack(alignment: .topLeading){
-                if userAlreadyExists {
-                    Text(" User already Exists ⚠️").foregroundStyle(Color.white)
-                        .frame(maxWidth: .infinity,alignment: .leading)
-                        .padding(.horizontal,10)
-                        .offset(y: 15)
-                }
-            }
+            Text("Create Admin Account").fontWeight(.heavy)       .foregroundStyle(Color.white)
             
             ZStack(alignment: .topLeading){
                 if firstNameNotValidated {
@@ -150,6 +141,11 @@ struct SignupView: View{
             
         }).frame(maxWidth :.infinity, maxHeight: .infinity, alignment: .center)
             .background(Color.brown.opacity(0.8))
+            .navigationDestination(isPresented: $accountCreated){
+                PlaidConnectView {
+                    
+                }
+            }
     }
 
     func validatePassword(passWord : String) -> Bool {
@@ -158,12 +154,11 @@ struct SignupView: View{
     }
     
     private func submitSignupForm(){
-        guard let signupURL = URL(string:"http://127.0.0.1:5001/api/users/signup") else {return}
+        guard let signupURL = URL(string:"http://127.0.0.1:5001/api/users/adminSignup") else {return}
         let payload : [String: Any] = [
             "userName" : userName,
             "emailAddress" : userEmail,
             "password" : userPassword,
-            "source" : auth.loginSource
         ]
         
         var sendRequest = URLRequest(url : signupURL)
@@ -177,16 +172,18 @@ struct SignupView: View{
             }
             
         }.resume()
+        
+        
     }
-    
     
     func createAccount (validate : Bool) {
         if validate{
-            //clear form
-            userName = fName + " " + lName
+//clear form
+            userName = fName + " " +  lName
             submitSignupForm()
             displayName = fName
             accountCreated = true
+//            authManager.isLoggedIn = true
             ClearFields()
             
             
@@ -209,5 +206,7 @@ struct SignupView: View{
 
 
 #Preview {
-        SignupView(email:"example@email.com")
+    NavigationStack{
+        SignupAdminView(email:"example@email.com")
+    }
 }

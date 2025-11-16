@@ -5,7 +5,7 @@
 //  Created by Gabriel Gonzalez on 9/22/25.
 //  This is the head level file and has some styling for the tab
 //  It also sets up config for google sign in. 
-//
+
 
 import SwiftUI
 import GoogleSignIn
@@ -13,6 +13,8 @@ import GoogleSignIn
 @main
 struct WalletBuddiesApp: App {
     @StateObject private var auth = AuthManager()
+    @StateObject private var userData = UserDataManager.shared
+
     
     init() {
         let appearance = UITabBarAppearance()
@@ -37,6 +39,7 @@ struct WalletBuddiesApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(auth)
+                .environmentObject(userData)
         }
         
     }

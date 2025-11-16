@@ -11,14 +11,13 @@ import SwiftUI
 
 struct LoginWithEmailView: View{
     
-    @State private var userEmail : String
+    @State private var userEmail : String = ""
     @State private var userPassword = ""
+    @State private var errorMessage = ""
     @State private var loggedIn : Bool = false
+    @State private var passwordIsIncorrect : Bool = false
     
-    @EnvironmentObject  var authManager: AuthManager
-    init(email:String){
-        _userEmail = State(initialValue: email)
-    }
+    @EnvironmentObject  var auth: AuthManager
     
     
   var duringIncompleteForm : Bool { userEmail.isEmpty || userPassword.isEmpty}
@@ -26,7 +25,7 @@ struct LoginWithEmailView: View{
     var body : some View{
         VStack(alignment:.center, spacing:20){
 
-            
+            Spacer()
             
             TextField("Email Address", text : $userEmail)
                 .textFieldStyle(.roundedBorder)
@@ -42,6 +41,14 @@ struct LoginWithEmailView: View{
                 .padding(.horizontal, 20)
                 .textInputAutocapitalization(.never)
             
+            ZStack(alignment: .topLeading){
+                if passwordIsIncorrect {
+                    Text(errorMessage /*⚠️*/).foregroundStyle(Color.white)
+                        .frame(maxWidth: .infinity,alignment: .leading)
+                        .padding(.horizontal,15)
+                        .offset(y: 15)
+                }
+            }
             
             Button{
                 print("button was clicked")
@@ -67,10 +74,16 @@ struct LoginWithEmailView: View{
                 Spacer()
 
                 NavigationLink("Sign Up to create an account."){
-                SignupView()
+                SignupView(email:userEmail)
             }.foregroundStyle(.white)
             
-        }
+        }.frame(maxWidth:.infinity,maxHeight:.infinity,alignment:.center)
+            .background(Color.brown.opacity(0.8))
+            .onAppear{
+                if userEmail.isEmpty{
+                    userEmail = auth.tempEmail
+                }
+            }
     }
     
     private func submitLoginForm(){
@@ -78,6 +91,7 @@ struct LoginWithEmailView: View{
         let payload : [String: Any] = [
             "emailAddress" : userEmail,
             "password" : userPassword,
+            "source" : auth.loginSource
         ]
         
         var sendRequest = URLRequest(url : loginURL)
@@ -98,10 +112,12 @@ struct LoginWithEmailView: View{
 
                 if decoded.success, let user = decoded.user {
                     DispatchQueue.main.async {
-                        authManager.handleLoginResponse(user: user)
+                        auth.handleLoginResponse(user: user)
                         loggedIn = true
                     }
                 } else {
+                    passwordIsIncorrect = true
+                    errorMessage = decoded.message
                     print("❌ \(decoded.message)")
                 }
 
@@ -135,7 +151,5 @@ func ClearFields(){
 }
 
 #Preview{
-    NavigationStack{
-        LoginWithEmailView(email:"example@email.com")
-    }.environmentObject(AuthManager())
+    LoginWithEmailView()
 }

@@ -16,46 +16,48 @@ struct PlaidConnectView: View {
     @EnvironmentObject var authManager: AuthManager
     var body: some View {
         VStack {
-            if linkToken == nil {
-                Button("Fetch Link Token") {
-                    fetchLinkToken { token in
-                        if let token = token {
-                            self.linkToken = token
-                        }
-                    }
-                }
-                .buttonStyle(.borderedProminent)
-            } else {
-                Button("Open Plaid Link") {
-                    showPlaid = true
-                }
-                .buttonStyle(.borderedProminent)
-                .plaidLink(
-                    isPresented: $showPlaid,
-                    token: linkToken ?? "",
-                    onSuccess: { success in
-                        print("✅ Success: public_token = \(success.publicToken)")
-                        exchangePublicToken(success.publicToken, auth: authManager) { success in
-                            if success {
-                                print("✅ Successfully exchanged public token")
-                                DispatchQueue.main.async {
-                                    onFinish()
-                                }
+            if authManager.isLoggedIn{
+                if linkToken == nil {
+                    Button("Fetch Link Token") {
+                        fetchLinkToken { token in
+                            if let token = token {
+                                self.linkToken = token
                             }
                         }
                     }
-,
-                    onExit: { exit in
-                        print("ℹ️ Exit: \(String(describing: exit.error?.errorMessage))")
-                    },
-                    onEvent: { event in
-                        print("📡 Event: \(event.eventName)")
-                    },
-                    onLoad: {
-                        print("🚀 Link UI loaded")
-                    },
-                    errorView: AnyView(Text("Plaid failed to load"))
-                )
+                    .buttonStyle(.borderedProminent)
+                } else {
+                    Button("Open Plaid Link") {
+                        showPlaid = true
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .plaidLink(
+                        isPresented: $showPlaid,
+                        token: linkToken ?? "",
+                        onSuccess: { success in
+                            print("✅ Success: public_token = \(success.publicToken)")
+                            exchangePublicToken(success.publicToken, auth:authManager) { success in
+                                if success {
+                                    print("✅ Successfully exchanged public token")
+                                    DispatchQueue.main.async {
+                                        onFinish()
+                                    }
+                                }
+                            }
+                        }
+                        ,
+                        onExit: { exit in
+                            print("ℹ️ Exit: \(String(describing: exit.error?.errorMessage))")
+                        },
+                        onEvent: { event in
+                            print("📡 Event: \(event.eventName)")
+                        },
+                        onLoad: {
+                            print("🚀 Link UI loaded")
+                        },
+                        errorView: AnyView(Text("Plaid failed to load"))
+                    )
+                }
             }
         }
         .padding()

@@ -39,7 +39,14 @@ struct AccountTabView: View {
     @EnvironmentObject var auth: AuthManager
     @State private var showMailView = false
     @State private var showMailError = false
+    @State private var isDeleted = false
+    @State private var tryDelete = false
 
+    func deleteAcc(){
+        auth.deleteAccount()
+        isDeleted = true
+    }
+    
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
@@ -51,10 +58,10 @@ struct AccountTabView: View {
                         .foregroundColor(.gray.opacity(0.5))
                         .padding(.top, 20)
 
-                    Text("Gabriel Gonzalez")
+                    Text(auth.name)
                         .font(.title2.bold())
-
-                    Text("gabriel@example.com")
+                    
+                    Text(auth.email)
                         .font(.subheadline)
                         .foregroundColor(.gray)
                 }
@@ -113,8 +120,8 @@ struct AccountTabView: View {
                     .tint(.blue)
                     .padding(.horizontal)
                     
-                    Button(role: .destructive) {
-                        auth.deleteAccount()
+                    Button{
+                        tryDelete = true
                     } label: {
                         Text("Delete Account")
                             .frame(maxWidth: .infinity)
@@ -122,13 +129,22 @@ struct AccountTabView: View {
                     .buttonStyle(.borderedProminent)
                     .tint(.red)
                     .padding(.horizontal)
-
+                    
+                    
                     Button {
                         auth.signOut()
-                    } label: {
+                    }
+                    label: {
                         Text("Log Out")
                             .frame(maxWidth: .infinity)
                     }
+                    .alert(isPresented:$tryDelete){
+                        Alert(title:Text("Delete account"),
+                    message:Text("Are you sure you want to delete your account? "),
+                    primaryButton: .default(Text("Cancel")),
+                              secondaryButton: .destructive(Text("Delete"),
+                        action: deleteAcc)
+                    )}
                     .buttonStyle(.bordered)
                     .padding(.horizontal)
                     .padding(.bottom, 40)
