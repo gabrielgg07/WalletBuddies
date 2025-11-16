@@ -14,8 +14,10 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(Text, nullable=False)
+    source = Column(Text, nullable=True)
     email = Column(Text, unique=True, nullable=False)
-    password_hash = Column(Text, nullable=False)
+    password_hash = Column(Text, nullable=True)
+    GID_Token = Column(Text, nullable=True)
     role = Column(Text, nullable=False)
     created_at = Column(TIMESTAMP, default=datetime.utcnow)
     updated_at = Column(TIMESTAMP, default=datetime.utcnow, onupdate=datetime.utcnow)
