@@ -383,3 +383,4 @@ def delete_user_route(user_id):
         return jsonify({"error": str(e)}), 500
     finally:
         db.close()
+

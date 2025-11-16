@@ -13,6 +13,11 @@ struct HomeTabView: View {
     @State private var savingsGoal: Double = 5000.00
     @EnvironmentObject var auth: AuthManager
 
+    @State private var showAddExpense = false
+    @State private var showReports = false
+    @State private var showGoals = false
+
+    
     var body: some View {
         NavigationView {
             ScrollView {
@@ -20,7 +25,9 @@ struct HomeTabView: View {
 
                     // MARK: - Welcome Header
                     VStack(alignment: .leading, spacing: 6) {
+
                         Text("Good Afternoon, " + auth.name + " 👋")
+
                             .font(.title2.bold())
                         Text("Here’s your financial snapshot:")
                             .font(.subheadline)
@@ -72,9 +79,24 @@ struct HomeTabView: View {
                             .padding(.horizontal)
 
                         VStack(spacing: 14) {
-                            newsCard(title: "Markets Rally as Inflation Cools", source: "Bloomberg", image: "chart.line.uptrend.xyaxis")
-                            newsCard(title: "How to Build an Emergency Fund", source: "CNBC", image: "banknote")
-                            newsCard(title: "Top Budgeting Strategies for 2025", source: "Forbes", image: "wallet.pass")
+                            newsCard(
+                                title: "Markets Rally as Inflation Cools",
+                                source: "Bloomberg",
+                                image: "chart.line.uptrend.xyaxis",
+                                url: "https://www.bloomberg.com/"
+                            )
+                            newsCard(
+                                title: "How to Build an Emergency Fund",
+                                source: "CNBC",
+                                image: "banknote",
+                                url: "https://www.cnbc.com/select/how-to-build-an-emergency-fund/"
+                            )
+                            newsCard(
+                                title: "Top Budgeting Strategies for 2025",
+                                source: "Forbes",
+                                image: "wallet.pass",
+                                url: "https://www.forbes.com/advisor/personal-finance/budgeting-strategies/"
+                            )
                         }
                         .padding(.horizontal)
                     }
@@ -86,50 +108,75 @@ struct HomeTabView: View {
             .navigationTitle("Home")
             .scrollIndicators(.hidden)
         }
+        .fullScreenCover(isPresented: $showAddExpense) { AddExpenseView() }
+        .fullScreenCover(isPresented: $showReports) { ReportsView() }
+        .fullScreenCover(isPresented: $showGoals) { GoalsView() }
     }
 
     // MARK: - Reusable Components
     private func quickAction(icon: String, title: String) -> some View {
-        VStack(spacing: 6) {
-            Image(systemName: icon)
-                .font(.system(size: 28))
-                .foregroundColor(.mint)
-                .frame(width: 60, height: 60)
-                .background(Color.white)
-                .clipShape(Circle())
-                .shadow(color: .gray.opacity(0.2), radius: 4)
-            Text(title)
-                .font(.caption)
-                .foregroundColor(.primary)
+        Button {
+            switch title {
+            case "Add Expense": showAddExpense = true
+            case "View Reports": showReports = true
+            case "Goals": showGoals = true
+            default: break
+            }
+        } label: {
+            VStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.system(size: 30))
+                    .foregroundColor(.white)
+                    .frame(width: 60, height: 60)
+                    .background(LinearGradient(colors: [.mint, .teal], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .clipShape(Circle())
+                Text(title)
+                    .font(.caption)
+                    .foregroundColor(.primary)
+            }
+            .frame(maxWidth: .infinity)
         }
+        .buttonStyle(.plain)
     }
 
-    private func newsCard(title: String, source: String, image: String) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: image)
-                .font(.system(size: 28))
-                .frame(width: 44, height: 44)
-                .foregroundColor(.mint)
-                .background(Color.white)
-                .clipShape(RoundedRectangle(cornerRadius: 10))
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.subheadline.bold())
-                    .lineLimit(2)
-                Text(source)
-                    .font(.caption)
-                    .foregroundColor(.gray)
+    @Environment(\.openURL) private var openURL
+    
+    private func newsCard(title: String, source: String, image: String, url: String) -> some View {
+        Button {
+            if let link = URL(string: url) {
+                openURL(link)
             }
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: image)
+                    .font(.system(size: 28))
+                    .frame(width: 44, height: 44)
+                    .foregroundColor(.mint)
+                    .background(Color.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
 
-            Spacer()
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title)
+                        .font(.subheadline.bold())
+                        .lineLimit(2)
+                    Text(source)
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .foregroundColor(.gray.opacity(0.6))
+            }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.white)
+                    .shadow(color: .gray.opacity(0.15), radius: 3, x: 0, y: 2)
+            )
         }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.white)
-                .shadow(color: .gray.opacity(0.15), radius: 3, x: 0, y: 2)
-        )
+        .buttonStyle(.plain)
     }
 }
 
