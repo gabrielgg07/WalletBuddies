@@ -21,39 +21,68 @@ def createAdminAccount():
     signupData = request.get_json() or {}
     print(signupData)
 
-    firstName = signupData.get('firstName')
-    lastName = signupData.get('lastName')
+    userName = signupData.get('userName')
     userEmail = signupData.get('emailAddress', '').lower()
     userPassword = signupData.get('password')
+    source = signupData.get('source')
+    GID_Token = signupData.get('GID_Token')
     roleA = 'admin'
 
     # --- Validate inputs ---
-    if not all([firstName, lastName, userEmail, userPassword,roleA]):
-        return jsonify({"success": False, "message": "Missing required fields"}), 400
+    if source == 'Email':
+        if not all([userName, userEmail, userPassword,source, roleA]):
+            return jsonify({"success": False, "message": "Missing required fields"}), 400
 
-    # --- Hash password ---
-    hashed_pw = bcrypt.hashpw(userPassword.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        # --- Hash password ---
+        hashed_pw = bcrypt.hashpw(userPassword.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-    # --- Check if user already exists ---
-    userObj = db.query(User).filter(User.email == userEmail).first()
-    if userObj:
+        # --- Check if user already exists ---
+        userObj = db.query(User).filter(User.email == userEmail).first()
+        if userObj:
+            db.close()
+            return jsonify({"success": False, "message": "User already exists"}), 400
+
+        # --- Create new user ---
+        new_user = User(
+            name=userName,
+            email=userEmail,
+            password_hash=hashed_pw,
+            role=roleA
+        )
+
+        db.add(new_user)
+        db.commit()
         db.close()
-        return jsonify({"success": False, "message": "User already exists"}), 400
 
-    # --- Create new user ---
-    new_user = User(
-        fname=firstName,
-        lname=lastName,
-        email=userEmail,
-        password_hash=hashed_pw,
-        role = roleA
-    )
+        return jsonify({"success": True, "message": "Account successfully created"}), 201
 
-    db.add(new_user)
-    db.commit()
-    db.close()
+    elif source == 'Google':
+        if not all([userName, userEmail, GID_Token, source, roleA]):
+            return jsonify({"success": False, "message": "Missing required fields"}), 400
 
-    return jsonify({"success": True, "message": "Account successfully created"}), 201
+        # --- Check if user already exists ---
+        userObj = db.query(User).filter(User.email == userEmail).first()
+        if userObj:
+            db.close()
+            return jsonify({"success": False, "message": "User already exists"}), 400
+
+        # --- Create new user ---
+        new_user = User(
+            name=userName,
+            email=userEmail,
+            GID_Token = GID_Token,
+            role=roleA
+        )
+
+        db.add(new_user)
+        db.commit()
+        db.close()
+
+        return jsonify({"success": True, "message": "Account successfully created"}), 201
+
+
+
+
 
 
 @user_bp.route('/signup', methods=["POST"])
@@ -61,42 +90,67 @@ def createAccount():
     db = SessionLocal()
     signupData = request.get_json() or {}
     print(signupData)
-
-    firstName = signupData.get('firstName')
-    lastName = signupData.get('lastName')
+    userName = signupData.get('userName')
     userEmail = signupData.get('emailAddress', '').lower()
     userPassword = signupData.get('password')
-    roleU ='user'
+    source = signupData.get('source')
+    GID_Token = signupData.get('GID_Token')
+    roleU = 'user'
 
     # --- Validate inputs ---
-    if not all([firstName, lastName, userEmail, userPassword,roleU]):
-        return jsonify({"success": False, "message": "Missing required fields"}), 400
+    if source == 'Email':
+        if not all([userName, userEmail, userPassword, source, roleU]):
+            return jsonify({"success": False, "message": "Missing required fields"}), 400
 
-    # --- Hash password ---
-    hashed_pw = bcrypt.hashpw(userPassword.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        # --- Hash password ---
+        hashed_pw = bcrypt.hashpw(userPassword.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
-    # --- Check if user already exists ---
-    userObj = db.query(User).filter(User.email == userEmail).first()
-    if userObj:
+        # --- Check if user already exists ---
+        userObj = db.query(User).filter(User.email == userEmail).first()
+        if userObj:
+            db.close()
+            return jsonify({"success": False, "message": "User already exists"}), 400
+
+        # --- Create new user ---
+        new_user = User(
+            name=userName,
+            email=userEmail,
+            password_hash=hashed_pw,
+            source=source,
+            role=roleU
+        )
+
+        db.add(new_user)
+        db.commit()
         db.close()
-        return jsonify({"success": False, "message": "User already exists"}), 400
 
-    # --- Create new user ---
-    new_user = User(
-        fname=firstName,
-        lname=lastName,
-        email=userEmail,
-        password_hash=hashed_pw,
-        role = roleU
-    )
+        return jsonify({"success": True, "message": "Account successfully created"}), 201
 
-    db.add(new_user)
-    db.commit()
-    db.close()
+    elif source == 'Google':
+        if not all([userName, userEmail, GID_Token, source, roleU]):
+            return jsonify({"success": False, "message": "Missing required fields"}), 400
 
-    return jsonify({"success": True, "message": "Account successfully created"}), 201
+        # --- Check if user already exists ---
+        userObj = db.query(User).filter(User.email == userEmail).first()
+        if userObj:
+            db.close()
+            return jsonify({"success": False, "message": "User already exists"}), 400
 
-  
+        # --- Create new user ---
+        new_user = User(
+            name=userName,
+            email=userEmail,
+            GID_Token=GID_Token,
+            source=source,
+            role=roleU
+        )
+
+        db.add(new_user)
+        db.commit()
+        db.close()
+
+        return jsonify({"success": True, "message": "Account successfully created"}), 201
+
 
 # User login by Email
 
@@ -106,32 +160,63 @@ def logIn():
     try:
         data = request.get_json() or {}
         user_email = data.get('emailAddress', '').lower()
-        user_password = data.get('password')
+        login_source = data.get('source')
 
-        if not user_email or not user_password:
-            return jsonify({"success": False, "message": "Missing email or password"}), 400
+        if login_source == 'Email':
+            user_password = data.get('password')
 
-        user = db.query(User).filter(User.email == user_email).first()
-        if not user:
-            return jsonify({"success": False, "message": "User not found"}), 404
+            if not user_email or not user_password:
+                return jsonify({"success": False, "message": "Missing email or password"}), 400
 
-        # ✅ Check hashed password correctly
+            user = db.query(User).filter(User.email == user_email).first()
+            if not user:
+                return jsonify({"success": False, "message": "User not found"}), 404
 
-        if not bcrypt.checkpw(user_password.encode('utf-8'), user.password_hash.encode('utf-8')):
-            return jsonify({"success": False, "message": "Incorrect password"}), 401
+            # ✅ Check hashed password correctly
 
-        # ✅ Return clean user info
-        return jsonify({
-            "success": True,
-            "message": "Logged In",
-            "user": {
-                "id": user.id,
-                "first_name": user.fname,
-                "last_name": user.lname,
-                "email": user.email,
-                "created_at": user.created_at.isoformat() if user.created_at else None
-            }
-        }), 200
+            if not bcrypt.checkpw(user_password.encode('utf-8'), user.password_hash.encode('utf-8')):
+                return jsonify({"success": False, "message": "Incorrect password"}), 401
+
+            # ✅ Return clean user info
+            return jsonify({
+                "success": True,
+                "message": "Logged In",
+                "user": {
+                    "id": user.id,
+                    "name" : user.name,
+                    "email": user.email,
+                    "created_at": user.created_at.isoformat() if user.created_at else None,
+                    "role" : user.role
+                }
+            }), 200
+
+        if login_source == 'Google':
+            GID_Token = data.get('GID_Token')
+
+            if not user_email or not GID_Token:
+                return jsonify({"success": False, "message": "Missing email or password"}), 400
+
+            user = db.query(User).filter(User.email == user_email).first()
+            if not user:
+                return jsonify({"success": False, "message": "User not found"}), 404
+
+            # ✅ Check hashed password correctly
+
+            if not GID_Token == user.GID_Token:
+                return jsonify({"success": False, "message": "Incorrect Google token"}), 401
+
+            # ✅ Return clean user info
+            return jsonify({
+                "success": True,
+                "message": "Logged In",
+                "user": {
+                    "id": user.id,
+                    "name": user.name,
+                    "email": user.email,
+                    "created_at": user.created_at.isoformat() if user.created_at else None,
+                    "role": user.role
+                }
+            }), 200
 
     except Exception as e:
         print("❌ Login error:", e)
@@ -168,22 +253,39 @@ def updateUserPrivileges():
     return jsonify({"success": False, "message": "Not successful"}), 200
 
 #Delete user
-@user_bp.route('/deleteUser',methods=["POST"])
+@user_bp.route('/deleteAccount',methods=["DELETE"])
 def deleteUser():
    get_database = SessionLocal()
    deleteFormData = request.get_json() or {}
    print(deleteFormData)
-   userEmail = deleteFormData.get('emailAddress').lower()
-   userPassword = deleteFormData.get('password')
+   userEmail = deleteFormData.get('userEmail')
    userObj = get_database.query(User).filter(User.email == userEmail).first()
    if not userObj:
        return jsonify({"success": False, "message": "No user to delete"}),400
-   elif userEmail == userObj.email and bcrypt.checkpw(userPassword.encode('utf-8'),userObj.password_hash.encode('utf-8')):
+   elif userEmail == userObj.email:
        get_database.delete(userObj)
        get_database.commit()
        get_database.close()
        return jsonify({"success":True, "message": "User Deleted"}),200
    return jsonify({"success": False, "message": "Not successful"}),400
+
+@user_bp.route('/deleteUserAccount',methods=["DELETE"])
+def deleteUserAccount():
+    get_database = SessionLocal()
+    deleteFormData = request.get_json() or {}
+    print(deleteFormData)
+    requestRole = deleteFormData.get('requestRole')
+    print(requestRole)
+    targetUserEmail = deleteFormData.get('targetUserEmail').lower()
+    userObj = get_database.query(User).filter(User.email == targetUserEmail).first()
+
+    if requestRole != 'admin' or not userObj:
+        return jsonify({"success": False, "message": "Not allowed"}),400
+    else:
+        get_database.delete(userObj)
+        get_database.commit()
+        get_database.close()
+        return jsonify({"success": True, "message": "User Deleted"}), 200
 
 # -------------------------------
 # 🧱 Create new user
@@ -217,6 +319,7 @@ def create_user_route():
         return jsonify({"error": str(e)}), 500
     finally:
         db.close()
+
 
 
 # -------------------------------
