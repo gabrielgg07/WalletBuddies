@@ -24,6 +24,16 @@ struct LoginView: View{
             
             Text("Welcome to WalletBuddies").font(.title2)
                 .padding(.vertical,30)
+            
+            
+            ZStack(alignment: .topLeading){
+                if auth.userDoesntExist {
+                    Text(" User Doesn't Exist ⚠️").foregroundStyle(Color.white)
+                        .frame(maxWidth: .infinity,alignment: .leading)
+                        .padding(.horizontal,10)
+                        .offset(y: 15)
+                }
+            }
     
             
             TextField("Email Address", text : $userEmail)
@@ -69,7 +79,7 @@ struct LoginView: View{
                         .first(where: { $0.isKeyWindow })?
                         .rootViewController {
                         
-                        auth.signInWithGoogle(presenting: rootVC)
+                        auth.loginWithGoogle(presenting: rootVC)
                     }
                 } label: {
                     HStack {
@@ -90,9 +100,15 @@ struct LoginView: View{
             Spacer()
             
             
-            NavigationLink("Sign Up to create an account."){
-                SignupView(email:userEmail)
-            }.foregroundStyle(.white)
+            Button{
+                auth.trySignup = true
+                auth.userDoesntExist = false
+            } label:{
+                HStack{
+                    Text("Sign Up to create an account.")
+                }.frame(maxWidth: .infinity)
+            }.foregroundColor(.white)
+    
             
         }.frame(maxWidth:.infinity,maxHeight:.infinity,alignment:.center)
             .background(Color.brown.opacity(0.8))

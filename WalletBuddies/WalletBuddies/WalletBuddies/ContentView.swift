@@ -14,8 +14,11 @@ struct ContentView: View {
     var body: some View {
 
         NavigationStack{
-            if !auth.isLoggedIn && !auth.tryLogin {
+            if !auth.isLoggedIn && !auth.tryLogin && !auth.trySignup {
                 LoginView()
+            }
+            else if auth.trySignup{
+                SignupView(email: auth.tempEmail)
             }
             else if !auth.isLoggedIn && auth.tryLogin {
                 LoginWithEmailView()

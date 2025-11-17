@@ -16,7 +16,6 @@ struct SignupView: View{
     @State private var checkPassword = ""
     @State private var accountCreated = false
     @State private var displayName = ""
-    @State private var userAlreadyExists = false
     
     @EnvironmentObject  var auth: AuthManager
     init(email:String){
@@ -53,16 +52,48 @@ struct SignupView: View{
         
         VStack(alignment:.center, spacing:35, content: {
             
+            
+            if #available(iOS 26.0, *) {
+                Button {
+                    if let rootVC = UIApplication.shared
+                        .connectedScenes
+                        .compactMap({ $0 as? UIWindowScene })
+                        .first?
+                        .windows
+                        .first(where: { $0.isKeyWindow })?
+                        .rootViewController {
+                        
+                        auth.signupWithGoogle(presenting: rootVC)
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: "globe") // Replace with Google logo if you want
+                        Text("Sign Up with Google")
+                    }.frame(maxWidth: .infinity)
+                        .padding(.vertical,3)
+                    
+                }
+                .buttonStyle(.glassProminent)
+                .tint(.black)
+                .padding(.horizontal)
+            } else {
+                // Fallback on earlier versions
+            }
+            
+            Text("~OR~").fontWeight(.heavy)       .foregroundStyle(Color.white)
+            
             Text("Create a Profile").fontWeight(.heavy)       .foregroundStyle(Color.white)
             
+            
             ZStack(alignment: .topLeading){
-                if userAlreadyExists {
+                if auth.userAlreadyExists {
                     Text(" User already Exists ⚠️").foregroundStyle(Color.white)
                         .frame(maxWidth: .infinity,alignment: .leading)
                         .padding(.horizontal,10)
                         .offset(y: 15)
                 }
             }
+            
             
             ZStack(alignment: .topLeading){
                 if firstNameNotValidated {
@@ -209,5 +240,6 @@ struct SignupView: View{
 
 
 #Preview {
-        SignupView(email:"example@email.com")
+    SignupView(email:"example@email.com")
+    
 }
