@@ -191,9 +191,11 @@ def logIn():
             }), 200
 
         if login_source == 'Google':
-            GID_Token = data.get('GID_Token')
+            print(data)
+            # GID_Token = data.get('GID_Token')
 
-            if not user_email or not GID_Token:
+            # if not user_email or not GID_Token:
+            if not user_email:
                 return jsonify({"success": False, "message": "Missing email or password"}), 400
 
             user = db.query(User).filter(User.email == user_email).first()
@@ -202,8 +204,8 @@ def logIn():
 
             # ✅ Check hashed password correctly
 
-            if not GID_Token == user.GID_Token:
-                return jsonify({"success": False, "message": "Incorrect Google token"}), 401
+            # if GID_Token != user.GID_Token:
+            #     return jsonify({"success": False, "message": "Incorrect Google token"}), 401
 
             # ✅ Return clean user info
             return jsonify({
@@ -214,9 +216,12 @@ def logIn():
                     "name": user.name,
                     "email": user.email,
                     "created_at": user.created_at.isoformat() if user.created_at else None,
-                    "role": user.role
+                    "role": user.role,
+                    "source" : user.source
                 }
             }), 200
+
+        return jsonify({"success": False, "message": "Invalid login source","received source" : login_source}), 400
 
     except Exception as e:
         print("❌ Login error:", e)
