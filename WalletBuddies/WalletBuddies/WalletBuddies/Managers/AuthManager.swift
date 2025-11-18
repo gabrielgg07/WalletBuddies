@@ -41,9 +41,24 @@ class AuthManager: ObservableObject {
             UserDefaults.standard.set(isLoggedIn, forKey: "isLoggedIn")
         }
     }
+    @Published var trySignup: Bool = false {
+        didSet {
+            UserDefaults.standard.set(trySignup, forKey: "trySignup")
+        }
+    }
     @Published var loginSource: String = "Email" {
         didSet {
             UserDefaults.standard.set(loginSource, forKey: "loginSource")
+        }
+    }
+    @Published var userAlreadyExists: Bool = false{
+        didSet {
+            UserDefaults.standard.set(userAlreadyExists, forKey: "userAlreadyExists")
+        }
+    }
+    @Published var userDoesntExist: Bool = false{
+        didSet {
+            UserDefaults.standard.set(userDoesntExist, forKey: "userDoesntExist")
         }
     }
     @Published var name: String = "" {
@@ -92,6 +107,7 @@ class AuthManager: ObservableObject {
         self.email = email
         self.role = role
         self.isLoggedIn = true
+        self.trySignup = false
 
         UserDefaults.standard.set(true, forKey: "isLoggedIn")
         UserDefaults.standard.set(name, forKey: "userName")
@@ -102,6 +118,7 @@ class AuthManager: ObservableObject {
 
         print("✅ User signed up & logged in: \(email)")
     }
+    
 
     func handleLoginResponse(user: UserData) {
         self.name = user.name
@@ -121,6 +138,8 @@ class AuthManager: ObservableObject {
         self.role = ""
         self.gidToken = ""
         self.isPlaidLinked = false
+        self.userAlreadyExists = false
+        self.userDoesntExist = false
 
         UserDefaults.standard.removeObject(forKey: "isLoggedIn")
         UserDefaults.standard.removeObject(forKey: "userName")
@@ -141,6 +160,9 @@ class AuthManager: ObservableObject {
         self.role = ""
         self.gidToken = ""
         self.isPlaidLinked = false
+        self.trySignup = false
+        self.userAlreadyExists = false
+        self.userDoesntExist = false
 
         UserDefaults.standard.removeObject(forKey: "isLoggedIn")
         UserDefaults.standard.removeObject(forKey: "userName")
@@ -154,19 +176,11 @@ class AuthManager: ObservableObject {
         self.clearValues()
         GIDSignIn.sharedInstance.restorePreviousSignIn { user, error in
             if let user = user {
-                DispatchQueue.main.async {
-                    self.name = user.profile?.name ?? "Anonymous"
-                    self.loginSource = "Google"
-                    self.email = user.profile?.email
-                    ?? UserDefaults.standard.string(forKey: "userEmail")
-                    ?? ""
-                    if self.role == ""{
-                        self.role = "user"
-                    }
-                    self.isLoggedIn = true
-                    self.isPlaidLinked = true
-                    print("✅ Restored session for: \(user.profile?.email ?? "unknown email")")
-                }
+                self.name = user.profile?.name ?? "Anonymous"
+                self.email = user.profile?.email ?? ""
+//                self.gidToken = user.idToken
+                self.loginSource = "Google"
+                self.submitLoginForm()
             } else {
                 DispatchQueue.main.async {
                     self.isLoggedIn = false
@@ -177,6 +191,31 @@ class AuthManager: ObservableObject {
             }
         }
     }
+            
+            
+//                DispatchQueue.main.async {
+//                    self.name = user.profile?.name ?? "Anonymous"
+//                    self.loginSource = "Google"
+//                    self.email = user.profile?.email
+//                    ?? UserDefaults.standard.string(forKey: "userEmail")
+//                    ?? ""
+//                    if self.role == ""{
+//                        self.role = "user"
+//                    }
+//                    self.isLoggedIn = true
+//                    self.isPlaidLinked = true
+//                    print("✅ Restored session for: \(user.profile?.email ?? "unknown email")")
+//                }
+//            } else {
+//                DispatchQueue.main.async {
+//                    self.isLoggedIn = false
+//                    self.name = ""
+//                    self.isPlaidLinked = false
+//                    print("ℹ️ No previous Google session found")
+//                }
+//            }
+//        }
+//    }
     
     func disconnect() {
         // Fully revokes access (user must grant permission again next login)
@@ -193,6 +232,48 @@ class AuthManager: ObservableObject {
         }
     }
     
+    func submitLoginForm(){
+        guard let loginURL = URL(string:"http://127.0.0.1:5001/api/users/login") else {return}
+        let payload : [String:Any] = ["emailAddress" : self.email/*, "GID_Token" : self.gidToken*/, "source" : self.loginSource ]
+        var sendRequest = URLRequest(url : loginURL)
+        sendRequest.httpMethod = "POST"
+        sendRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        sendRequest.httpBody = try? JSONSerialization.data(withJSONObject: payload)
+        
+        URLSession.shared.dataTask(with: sendRequest){ data, response, error in
+            if (error != nil){
+                print("Error!")
+                return
+            }
+
+            guard let data = data else { return }
+
+            do {
+                let decoded = try JSONDecoder().decode(LoginResponse.self, from: data)
+
+                if decoded.success, let user = decoded.user {
+                    DispatchQueue.main.async {
+                        self.handleLoginResponse(user: user)
+                    }
+                } else {
+                    let errorMessage = decoded.message
+                    if errorMessage == "User not found"{
+                        self.disconnect()
+                        self.userDoesntExist = true
+                    }
+                    print("❌ \(decoded.message)")
+                }
+
+            } catch {
+                print("❌ Decode error: \(error)")
+                print(String(data: data, encoding: .utf8) ?? "")
+            }
+        }.resume()
+}
+
+        
+    
+    
     func submitSignupForm(){
         guard let signupURL = URL(string:"http://127.0.0.1:5001/api/users/signup") else {return}
         let payload : [String:Any] = ["userName" : self.name, "emailAddress" : self.email, "GID_Token" : self.gidToken, "source" : self.loginSource ]
@@ -201,15 +282,38 @@ class AuthManager: ObservableObject {
         sendRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
         sendRequest.httpBody = try? JSONSerialization.data(withJSONObject: payload)
         
-        URLSession.shared.dataTask(with: sendRequest){ data, _, _ in
-            if let data = data{
-                print(String(data:data,encoding: .utf8) ?? "")
+        URLSession.shared.dataTask(with: sendRequest){ data, response, error in
+            if (error != nil){
+                print("Error!")
+                return
             }
-            
+
+            guard let data = data else { return }
+
+            do {
+                let decoded = try JSONDecoder().decode(LoginResponse.self, from: data)
+
+                if decoded.success{
+                    DispatchQueue.main.async {
+                        self.handleSignupSuccess(name: self.name, email: self.email)
+                    }
+                } else {
+                    let errorMessage = decoded.message
+                    print("❌ \(decoded.message)")
+                    if errorMessage == "User already exists"{
+                        self.disconnect()
+                        self.userAlreadyExists = true
+                    }
+                }
+
+            } catch {
+                print("❌ Decode error: \(error)")
+                print(String(data: data, encoding: .utf8) ?? "")
+            }
         }.resume()
+}
         
-        
-    }
+
     
     func deleteAccount() {
 
@@ -259,7 +363,38 @@ class AuthManager: ObservableObject {
         }.resume()
     }
     
-    func signInWithGoogle(presenting viewController: UIViewController) {
+    
+    func loginWithGoogle(presenting viewController: UIViewController){
+        // Your Google OAuth Client ID (from Google Cloud console)
+        let clientID = "243679696449-1u67ftc5thcuepbnqj28revb6mph0b2t.apps.googleusercontent.com"
+        
+        let config = GIDConfiguration(clientID: clientID)
+        GIDSignIn.sharedInstance.configuration = config
+        
+        GIDSignIn.sharedInstance.signIn(withPresenting: viewController) { result, error in
+            if let error = error {
+                print("❌ Google Sign-In failed: \(error.localizedDescription)")
+                return
+            }
+            
+            guard let user = result?.user else {
+                print("❌ No user returned from Google Sign-In")
+                return
+            }
+            guard let idToken = user.idToken?.tokenString else{
+                print("❌ No GID token")
+                return
+            }
+            self.name = user.profile?.name ?? "Anonymous"
+            self.email = user.profile?.email ?? ""
+            self.gidToken = idToken
+            self.loginSource = "Google"
+            self.submitLoginForm()
+            
+        }
+    }
+    
+    func signupWithGoogle(presenting viewController: UIViewController) {
         // Your Google OAuth Client ID (from Google Cloud console)
         let clientID = "243679696449-1u67ftc5thcuepbnqj28revb6mph0b2t.apps.googleusercontent.com"
         
@@ -286,8 +421,6 @@ class AuthManager: ObservableObject {
             self.loginSource = "Google"
             self.submitSignupForm()
             
-            print("✅ Signed in as: \(user.profile?.email ?? "unknown email")")
-            
             
             // ----------------------------------------------------------
             // 🔑 1. Get Google ID token or email for backend auth
@@ -310,11 +443,11 @@ class AuthManager: ObservableObject {
             // }
             // ----------------------------------------------------------
             
-            DispatchQueue.main.async {
-                self.isLoggedIn = true
-                self.handleSignupSuccess(name: self.name, email: self.email)
-
-            }
+//            DispatchQueue.main.async {
+//                self.isLoggedIn = true
+//                self.handleSignupSuccess(name: self.name, email: self.email)
+//
+//            }
         }
         
     }

@@ -29,7 +29,7 @@ struct DeprecatedLoginView: View {
                     .rootViewController {
                     
                     //Call the authenticators function to sign in with google
-                    auth.signInWithGoogle(presenting: rootVC)
+                    auth.loginWithGoogle(presenting: rootVC)
                 }
             } label: {
                 HStack {

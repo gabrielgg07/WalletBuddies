@@ -73,9 +73,13 @@ struct LoginWithEmailView: View{
 
                 Spacer()
 
-                NavigationLink("Sign Up to create an account."){
-                SignupView(email:userEmail)
-            }.foregroundStyle(.white)
+            Button{
+                auth.trySignup = true
+            } label:{
+                HStack{
+                    Text("Sign Up to create an account.")
+                }.frame(maxWidth: .infinity)
+            }.foregroundColor(.white)
             
         }.frame(maxWidth:.infinity,maxHeight:.infinity,alignment:.center)
             .background(Color.brown.opacity(0.8))
@@ -150,6 +154,6 @@ func ClearFields(){
         
 }
 
-#Preview{
-    LoginWithEmailView()
-}
+//#Preview{
+//    LoginWithEmailView()
+//}
