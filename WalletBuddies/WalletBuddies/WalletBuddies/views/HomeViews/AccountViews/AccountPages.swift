@@ -165,4 +165,22 @@ struct TermsPrivacyView: View {
     }
 }
 
+struct ChangeAvatarView: View {
+    @ObservedObject var avatarManager: AvatarManager
+    @State private var showAvatarSelectionView = false
+    var body: some View {
+        AccountPlaceholderTemplate(title: "Change Avatar", systemImage: "tree") {
+            Text("Customize your name, username, and photo.")
+                .font(.subheadline)
+                .foregroundColor(.gray)
+            Button("Edit Profile Info") {
+                showAvatarSelectionView = true
+            }
+                .buttonStyle(.borderedProminent)
+                .fullScreenCover(isPresented: $showAvatarSelectionView) {
+                    AvatarSelectionView(avatarManager: avatarManager)
+                }
+        }
+    }
+}
 

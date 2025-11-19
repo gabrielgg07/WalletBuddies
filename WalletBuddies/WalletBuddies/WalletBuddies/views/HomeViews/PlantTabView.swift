@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PlantTabView: View {
     @State private var showEducation: Bool = false
+    @EnvironmentObject private var questManager: QuestManager
     @Environment(\.dismiss) private var dismiss
     var body: some View {
         ZStack {
@@ -135,6 +136,9 @@ struct PlantTabView: View {
         }
         .fullScreenCover(isPresented: $showEducation) {
             FinancialEducationView()
+        }
+        .onAppear {
+            questManager.registerEvent(.visitView("Goals"))
         }
     }
 }

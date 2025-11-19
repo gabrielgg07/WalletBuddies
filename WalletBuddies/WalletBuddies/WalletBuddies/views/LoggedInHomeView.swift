@@ -2,32 +2,34 @@ import SwiftUI
 
 // MARK: Possible quests
 // list of possible quests
-private let allQuestTemplates: [QuestTemplate] = [
-    QuestTemplate(id: UUID(), title: "Track 3 expenses", description: "Add three new expenses to your log.", rewardXP: 50),
-    QuestTemplate(id: UUID(), title: "Add 3 goals", description: "Set three new savings goals.", rewardXP: 100),
-    QuestTemplate(id: UUID(), title: "Read something for 5 minutes", description: "Read one of our financial articles for 5 minutes.", rewardXP: 75),
-    QuestTemplate(id: UUID(), title: "Invite a friend", description: "Share WalletBuddies with a friend.", rewardXP: 150)
+private let dailyQuestTemplates: [QuestTemplate] = [
+    QuestTemplate(id: UUID(), title: "Spend 5 Minutes on the app", description: "Interact with WalletBuddies for 5 minutes.", rewardXP: 50, type: .timeActive, targetValue: 300),
+    QuestTemplate(id: UUID(), title: "Contribute to a goal", description: "Contribute some amount to a savings goals.", rewardXP: 50, type: .contribute, targetValue: 1),
+    QuestTemplate(id: UUID(), title: "Visit your plant view", description: "Check out how your plant is doing.", rewardXP: 50, type: .visitView, targetValue: 1)
+]
+private let monthlyQuestTemplates: [QuestTemplate] = [
+    QuestTemplate(id: UUID(), title: "Spend 30 Minutes on the app", description: "Interact with WalletBuddies for 30 minutes.", rewardXP: 300, type: .timeActive, targetValue: 1800),
+    QuestTemplate(id: UUID(), title: "Contribute to three goals", description: "Contribute some amount to three savings goals.", rewardXP: 300, type: .contribute, targetValue: 3),
+    QuestTemplate(id: UUID(), title: "Visit your plant view", description: "Check out how your plant is doing.", rewardXP: 300, type: .visitView, targetValue: 10)
 ]
 
-import SwiftUI
+
 
 // MARK: Home View
 struct HomeView: View {
     @EnvironmentObject var auth: AuthManager
-    @State private var xpSystem = XPSystem(currentXp: 40, level: 1)
+    @StateObject var xpSystemManager = XPSystemManager(userId: 0)
     @State private var showGoalsList = false
     @State private var selectedGoal: SavingsGoal?
     @State private var showGoalDetail = false
     @State private var showQuests = false
-    @StateObject private var questManager: QuestManager
+    @StateObject private var questManager = QuestManager(userID: "0", dailyTemplates: dailyQuestTemplates, monthlyTemplates: monthlyQuestTemplates)
+    @StateObject private var avatarManager = AvatarManager(userId: 0)
     @State private var selectedTab = 0
+    @State private var showOnboarding = false
     @State private var showPlantFullscreen = false
-
-
+    @State private var startTime = Date()
     
-    init() {
-        _questManager = StateObject(wrappedValue: QuestManager(userID: "user123", questTemplates: allQuestTemplates))
-    }
     var body: some View {
         ZStack(alignment: .topTrailing) {
             VStack(spacing: 10) {
@@ -35,7 +37,7 @@ struct HomeView: View {
                 // === XP Section ===
                 if selectedTab != 2 {
                     VStack(spacing: 10) {
-                        Text("Level \(xpSystem.level)")
+                        Text("Level \(xpSystemManager.level)")
                             .font(.headline)
                         
                         ZStack(alignment: .leading) {
@@ -49,13 +51,13 @@ struct HomeView: View {
                                     gradient: Gradient(colors: [.green, .accentColor]),
                                     startPoint: .leading,
                                     endPoint: .trailing))
-                                .frame(width: 300 * xpSystem.progressPercent(), height: 20)
+                                .frame(width: 300 * xpSystemManager.progressPercent(), height: 20)
                                 .cornerRadius(8)
-                                .animation(.easeInOut, value: xpSystem.progressPercent())
+                                .animation(.easeInOut, value: xpSystemManager.progressPercent())
                         }
                         .frame(width: 300)
                         
-                        Text("\(xpSystem.currentXp)/\(xpSystem.requiredXP(for: xpSystem.level)) XP")
+                        Text("\(xpSystemManager.currentXp)/\(xpSystemManager.requiredXP(for: xpSystemManager.level)) XP")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -77,9 +79,13 @@ struct HomeView: View {
                     Color.clear
                         .tabItem { Label("Plants", systemImage: "leaf.fill") }
                         .tag(2)
-                    GoalsTabView()
+                    GoalsTabView(userId: auth.userId)
                         .tabItem { Label("Goals", systemImage: "target") }
                         .tag(3)
+                        .environmentObject(questManager)
+                        .environmentObject(auth)
+                        .environmentObject(xpSystemManager)
+                        .environmentObject(avatarManager)
                     AccountTabView()
                         .tabItem { Label("Settings", systemImage: "person.crop.circle") }
                         .environmentObject(auth)
@@ -105,11 +111,35 @@ struct HomeView: View {
                 .padding(.top, 70)
             }
         }
+        .onAppear {
+            let userId = auth.userId
+            xpSystemManager.setUser(userId)
+            questManager.updateUserId(String(userId))
+            avatarManager.updateId(userId)
+            startTime = Date()
+            if !OnboardingStatus.hasSeen {
+                showOnboarding = true
+                OnboardingStatus.hasSeen = true
+            }
+        }
+        .onDisappear {
+            let seconds = Int(Date().timeIntervalSince(startTime))
+            questManager.registerEvent(.timeActive(seconds))
+        }
+        .onReceive(questManager.$completedQuestReward) {
+            reward in guard let xp = reward else { return }
+            let leveledUp = xpSystemManager.addXP(xp)
+            questManager.completedQuestReward = nil
+            if leveledUp {
+                avatarManager.unlockEligibleAvatars(currentLevel: xpSystemManager.level)
+                // could add some animation here
+            }
+        }
         .overlay(
             // Quests popup overlay
             Group {
                 if showQuests {
-                    QuestsPopupView(isPresented: $showQuests, quests: questManager.quests)
+                    QuestsPopupView(isPresented: $showQuests, quests: questManager.dailyQuests + questManager.monthlyQuests)
                         .zIndex(5)
                 }
                
@@ -118,6 +148,10 @@ struct HomeView: View {
         )
         .fullScreenCover(isPresented: $showPlantFullscreen) {
             PlantTabView()
+                .environmentObject(questManager)
+        }
+        .fullScreenCover(isPresented: $showOnboarding) {
+            OnboardingView()
         }
         .onChange(of: selectedTab) { newValue in
             if newValue == 2 {
@@ -155,7 +189,14 @@ struct AdminHomeView: View {
     }
 }
 
-
+// simple access helper
+struct OnboardingStatus {
+    static let key = "hasSeenOnboarding"
+    static var hasSeen: Bool {
+        get { UserDefaults.standard.bool(forKey: key)}
+        set { UserDefaults.standard.set(newValue, forKey: key)}
+    }
+}
 
 #Preview {
     HomeView()
