@@ -10,13 +10,16 @@ import SwiftUI
 struct HomeTabView: View {
     @State private var balance: Double = 2540.75
     @State private var monthlySpending: Double = 892.30
-    @State private var savingsGoal: Double = 5000.00
+   // @ObservedObject var goalManager: SavingsGoalManager
+    @State private var savingsGoal: Double = 2000
     @EnvironmentObject var auth: AuthManager
 
     @State private var showAddExpense = false
     @State private var showReports = false
     @State private var showGoals = false
 
+
+    
     
     var body: some View {
         NavigationView {
@@ -37,17 +40,26 @@ struct HomeTabView: View {
 
                     // MARK: - Balance Summary Card
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Current Balance")
+                        Text("Current Monthly Spending")
                             .font(.headline)
                             .foregroundColor(.gray)
-                        Text("$\(balance, specifier: "%.2f")")
+                        Text("$\(monthlySpending, specifier: "%.2f")")
                             .font(.system(size: 34, weight: .bold, design: .rounded))
-                        ProgressView(value: monthlySpending, total: savingsGoal) {
-                            Text("Monthly Spending")
-                                .font(.caption)
+                        if monthlySpending > 0 {
+                            ProgressView(value: monthlySpending, total: savingsGoal) {
+                                Text("Monthly Spending")
+                                    .font(.caption)
+                            }
+                            .tint(.green)
+                            .padding(.top, 8)
+                        } else {
+                            ProgressView(value: -1 * monthlySpending, total: savingsGoal) {
+                                Text("Over Budget")
+                                    .font(.caption)
+                            }
+                            .tint(.red)
+                            .padding(.top, 8)
                         }
-                        .tint(.green)
-                        .padding(.top, 8)
                     }
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -108,10 +120,20 @@ struct HomeTabView: View {
             .navigationTitle("Home")
             .scrollIndicators(.hidden)
         }
+        .onAppear() {
+            fetchNetValue(auth: auth) { net in
+                print("🔥 User net spending:", net)
+                monthlySpending = net
+            }
+          //  for target in goalManager.goals {
+            //    savingsGoal += target.targetAmount
+            //}
+        }
         .fullScreenCover(isPresented: $showAddExpense) { AddExpenseView() }
         .fullScreenCover(isPresented: $showReports) { ReportsView() }
         .fullScreenCover(isPresented: $showGoals) { GoalsView() }
     }
+
 
     // MARK: - Reusable Components
     private func quickAction(icon: String, title: String) -> some View {
