@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from Utils.db.base import SessionLocal
 from Utils.db.models import User
+from Utils.db.models import PlaidItem
 
 from Utils.crud.user_crud import (
     create_user,
@@ -175,8 +176,16 @@ def logIn():
             # ✅ Check hashed password correctly
 
             if not bcrypt.checkpw(user_password.encode('utf-8'), user.password_hash.encode('utf-8')):
-                return jsonify({"success": False, "message": "Incorrect password"}), 401
-
+                return jsonify({"success": False, "message": "Incorrect password"}), 401 
+            plaid_item = (
+                db.query(PlaidItem)
+                .filter(PlaidItem.user_id == user.id)
+                .order_by(PlaidItem.created_at.desc())
+                .first()
+            )
+            isLinked = True
+            if not plaid_item: 
+                isLinked = False
             # ✅ Return clean user info
             return jsonify({
                 "success": True,
@@ -187,7 +196,8 @@ def logIn():
                     "email": user.email,
                     "created_at": user.created_at.isoformat() if user.created_at else None,
                     "role" : user.role
-                }
+                },
+                "linked": isLinked
             }), 200
 
         if login_source == 'Google':
@@ -201,6 +211,16 @@ def logIn():
             user = db.query(User).filter(User.email == user_email).first()
             if not user:
                 return jsonify({"success": False, "message": "User not found"}), 404
+            
+            plaid_item = (
+                db.query(PlaidItem)
+                .filter(PlaidItem.user_id == user.id)
+                .order_by(PlaidItem.created_at.desc())
+                .first()
+            )
+            isLinked = True
+            if not plaid_item: 
+                isLinked = False
 
             # ✅ Check hashed password correctly
 
@@ -218,7 +238,8 @@ def logIn():
                     "created_at": user.created_at.isoformat() if user.created_at else None,
                     "role": user.role,
                     "source" : user.source
-                }
+                },
+                "linked": isLinked
             }), 200
 
         return jsonify({"success": False, "message": "Invalid login source","received source" : login_source}), 400

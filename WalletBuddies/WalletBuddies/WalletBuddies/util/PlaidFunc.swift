@@ -18,7 +18,7 @@ import Foundation
 #if targetEnvironment(simulator)
 let BaseURL = "http://127.0.0.1:5001"
 #else
-let BaseURL = "https://936482830bdf.ngrok-free.app"  // your Mac’s LAN IP for iPhone testing
+let BaseURL = "https://fc4e424cad6b.ngrok-free.app"  // your Mac’s LAN IP for iPhone testing
 #endif
 
 // MARK: - Networking helpers
@@ -92,48 +92,102 @@ func exchangePublicToken(
 
 
 
-// Simple Transaction model (expand later)
-struct Transaction: Identifiable {
-    let id = UUID()   // always generates a new UUID when you make one
+struct Transaction: Identifiable, Decodable {
+    let id: Int
     let name: String?
-    let amount: Double?
+    let amount: Double
+    let date: String?
+    let merchant_name: String?
+    let category: [String]?
+    let pending: Bool?
 }
 
-// MARK: - Plaid API Helpers
-func fetchTransactions(
+
+
+func refreshTransactions(
     auth: AuthManager,
     completion: @escaping ([Transaction]) -> Void
 ) {
-    guard let email = auth.email.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-          let url = URL(string: "\(BaseURL)/api/plaid/transactions?email=\(email)") else {
+    guard let email = auth.email.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
         completion([])
         return
     }
 
-    URLSession.shared.dataTask(with: url) { data, _, error in
-        guard let data = data, error == nil else {
-            print("❌ transactions fetch error:", error?.localizedDescription ?? "unknown")
+    // 1️⃣ FIRE SYNC to update DB
+    guard let syncURL = URL(string: "\(BaseURL)/api/plaid/transactions/sync?email=\(email)") else {
+        completion([])
+        return
+    }
+
+    URLSession.shared.dataTask(with: syncURL) { _, _, _ in
+
+        // 2️⃣ AFTER SYNC COMPLETES, FETCH ALL STORED TRANSACTIONS
+        guard let listURL = URL(string: "\(BaseURL)/api/plaid/transactions?email=\(email)") else {
             completion([])
             return
         }
 
-        do {
-            if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-               let transactions = json["transactions"] as? [[String: Any]] {
-                let mapped = transactions.map {
-                    Transaction(
-                        name: $0["name"] as? String,
-                        amount: $0["amount"] as? Double
-                    )
-                }
-                DispatchQueue.main.async { completion(mapped) }
-            } else {
-                print("❌ bad transaction response:", String(data: data, encoding: .utf8) ?? "")
+        URLSession.shared.dataTask(with: listURL) { data, _, error in
+            guard let data = data, error == nil else {
+                completion([])
+                return
+            }
+
+            do {
+                let decoded = try JSONDecoder().decode([Transaction].self, from: data)
+                DispatchQueue.main.async { completion(decoded) }
+            } catch {
+                print("❌ decode error:", error)
                 DispatchQueue.main.async { completion([]) }
             }
-        } catch {
-            print("❌ json decode error:", error)
-            DispatchQueue.main.async { completion([]) }
-        }
+
+        }.resume()
+
     }.resume()
 }
+ 
+struct NetResponse: Decodable {
+    let net: Double
+}
+
+
+func fetchNetValue(
+    auth: AuthManager,
+    completion: @escaping (Double) -> Void
+) {
+    guard let email = auth.email.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+          let url = URL(string: "\(BaseURL)/api/plaid/net?email=\(email)") else {
+        completion(0.0)
+        return
+    }
+
+    URLSession.shared.dataTask(with: url) { data, _, error in
+        if let error = error {
+            print("❌ Net fetch error:", error.localizedDescription)
+            completion(0.0)
+            return
+        }
+
+        guard let data = data else {
+            print("❌ No data returned for net value")
+            completion(0.0)
+            return
+        }
+
+        do {
+            // Decode JSON: { "net": -123.45 }
+            let decoded = try JSONDecoder().decode(NetResponse.self, from: data)
+
+            print("📊 Net spending value:", decoded.net)
+
+            DispatchQueue.main.async { completion(decoded.net) }
+
+        } catch {
+            print("❌ JSON decode error:", error)
+            print("Server raw response:", String(data: data, encoding: .utf8) ?? "")
+            DispatchQueue.main.async { completion(0.0) }
+        }
+
+    }.resume()
+}
+

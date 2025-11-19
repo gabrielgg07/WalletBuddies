@@ -46,10 +46,14 @@ struct TransactionsTabView: View {
         }
         .onAppear {
             // Fetch from backend
-            fetchTransactions(auth: auth) { txns in
+            refreshTransactions(auth: auth) { txns in
                 self.transactions = txns
                 self.isLoading = false
             }
+            fetchNetValue(auth: auth) { net in
+                print("🔥 User net spending:", net)
+            }
+
         }
     }
 }
@@ -76,4 +80,7 @@ struct TransactionList: View {
             .padding()
         }
     }
+    
+    
 }
+

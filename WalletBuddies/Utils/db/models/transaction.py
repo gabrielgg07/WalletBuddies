@@ -18,7 +18,7 @@ class Transaction(Base):
     __tablename__ = "transactions"
 
     id = Column(Integer, primary_key=True)
-    account_id = Column(Integer, ForeignKey("accounts.id", ondelete="CASCADE"))
+    plaid_item_id = Column(Integer, ForeignKey("items.id", ondelete="CASCADE"), nullable=False)
 
     plaid_transaction_id = Column(Text, unique=True, nullable=False)
     amount = Column(Numeric, nullable=False)
@@ -38,4 +38,4 @@ class Transaction(Base):
     )
 
     # Relationship to Account model
-    account = relationship("Account", back_populates="transactions")
+    #account = relationship("Account", back_populates="transactions")

@@ -10,9 +10,22 @@ from plaid.model.item_public_token_exchange_request import ItemPublicTokenExchan
 from plaid.model.transactions_get_request import TransactionsGetRequest
 
 
+
+
 from Utils.db.base import SessionLocal
 from Utils.db.models import PlaidItem
+from Utils.db.models import Transaction
 from Utils.crud.user_crud import get_user_by_email
+from Utils.crud.transaction_crud import (
+    create_transaction,
+    get_transaction_by_plaid_id,
+    update_transaction,
+    store_added_transactions,
+    store_modified_transactions
+)
+from Utils.db.models import Transaction
+from plaid.model.transactions_sync_request import TransactionsSyncRequest
+
 
 # --- Load environment variables ---
 from dotenv import load_dotenv
@@ -98,7 +111,8 @@ def exchange_public_token():
             user_id=user.id,
             access_token=access_token,        # ✅ new column
             plaid_item_id=item_id,            # ✅ use plaid_item_id (matches model)
-            institution_name="Demo Bank"
+            institution_name="Demo Bank",
+            cursor=None
         )
         db.add(plaid_item)
         db.commit()
@@ -121,25 +135,56 @@ def exchange_public_token():
         db.close()
         print("🧹 [Plaid] Database session closed")
 
-
-# --- Get transactions ---
 @plaid_bp.get("/transactions")
-def get_transactions():
-    print("📡 [Plaid] get_transactions() called")
+def list_transactions():
+    db = SessionLocal()
+    email = request.args.get("email")
+
+    user = get_user_by_email(db, email)
+    if not user:
+        return jsonify([])
+
+    item_ids = [item.id for item in user.items]
+
+    txs = (
+        db.query(Transaction)  # rename model to avoid conflict
+        .filter(Transaction.plaid_item_id.in_(item_ids))
+        .order_by(Transaction.date.desc())
+        .all()
+    )
+
+    results = []
+    for t in txs:
+        results.append({
+            "id": t.id,
+            "name": t.name,
+            "amount": float(t.amount),
+            "date": t.date.isoformat() if t.date else None,
+            "merchant_name": t.merchant_name,
+            "category": t.category,
+            "pending": t.pending
+        })
+
+    return jsonify(results)
+
+
+
+from plaid.model.transactions_sync_request import TransactionsSyncRequest
+
+
+@plaid_bp.get("/transactions/sync")
+def transactions_sync():
+    print("📡 [Plaid] transactions_sync() called")
     db = SessionLocal()
 
     try:
         email = request.args.get("email")
-        print(f"📨 [Plaid] Fetching transactions for email: {email}")
-
         if not email:
-            print("⚠️ [Plaid] Missing email in request")
             return jsonify({"error": "Missing email"}), 400
 
         user = get_user_by_email(db, email)
         if not user:
-            print(f"❌ [DB] No user found for {email}")
-            return jsonify({"error": f"No user found for {email}"}), 404
+            return jsonify({"error": "User not found"}), 404
 
         plaid_item = (
             db.query(PlaidItem)
@@ -147,35 +192,88 @@ def get_transactions():
             .order_by(PlaidItem.created_at.desc())
             .first()
         )
-
         if not plaid_item:
-            print("⚠️ [DB] No Plaid item found for this user")
-            return jsonify({"error": "No Plaid items linked to this user"}), 400
+            return jsonify({"error": "No Plaid item found"}), 400
 
-        print(f"📅 [Plaid] Fetching transactions from {email}’s account")
-        end = date.today()
-        start = end - timedelta(days=30)
+        # Current cursor (None on first sync)
+        cursor = plaid_item.cursor
+        print(f"🔁 [Plaid] Using cursor: {cursor}")
 
-        try:
-            resp = client.transactions_get(
-                TransactionsGetRequest(
-                    access_token=plaid_item.access_token,
-                    start_date=start,
-                    end_date=end,
-                    options={"count": 25, "offset": 0},
-                )
-            )
-            print("✅ [Plaid] Transactions fetched successfully")
-            return jsonify(resp.to_dict())
+        if cursor:
+            req = TransactionsSyncRequest(access_token=plaid_item.access_token, cursor=cursor)
+        else:
+            req = TransactionsSyncRequest(access_token=plaid_item.access_token)
 
-        except Exception as e:
-            print("💥 [Plaid] Error fetching transactions:", e)
-            return jsonify({"error": str(e)}), 500
+
+        sync_resp = client.transactions_sync(req).to_dict()
+        print("🔥 [Plaid] Sync response:", sync_resp)
+
+        added = sync_resp.get("added", [])
+        modified = sync_resp.get("modified", [])
+
+        print(f"🟢 Added: {len(added)}, 🟡 Modified: {len(modified)}")
+
+        # STORE THE DATA (important!)
+        store_added_transactions(db, plaid_item, added)
+        store_modified_transactions(db, modified)
+
+        # Save next cursor
+        next_cursor = sync_resp.get("next_cursor")
+        plaid_item.cursor = next_cursor
+        db.commit()
+
+        return jsonify({
+            "status": "synced",
+            "added": len(added),
+            "modified": len(modified),
+            "cursor": next_cursor
+        })
 
     except Exception as e:
-        print("💥 [Plaid] General error in get_transactions:", e)
+        print("💥 Error during /transactions/sync:", e)
         return jsonify({"error": str(e)}), 500
 
     finally:
         db.close()
-        print("🧹 [Plaid] Database session closed")
+        print("🧹 DB session closed")
+
+@plaid_bp.get("/net")
+def get_net_gain_loss():
+    db = SessionLocal()
+
+    try:
+        email = request.args.get("email")
+        if not email:
+            return jsonify({"error": "Missing email"}), 400
+
+        user = get_user_by_email(db, email)
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        # Get all PlaidItem IDs for this user
+        item_ids = [item.id for item in user.items]
+
+        if not item_ids:
+            return jsonify({"net": 0.0})
+
+        # IMPORT YOUR SQLALCHEMY MODEL
+        from Utils.db.models.transaction import Transaction as TransactionModel
+
+        # Query all transactions for those PlaidItems
+        txs = (
+            db.query(TransactionModel)
+            .filter(TransactionModel.plaid_item_id.in_(item_ids))
+            .all()
+        )
+
+        # Sum amounts — make sure amount is cast to float
+        net = sum(float(tx.amount) for tx in txs if tx.amount is not None)
+
+        return jsonify({"net": net})
+
+    except Exception as e:
+        print("💥 Error in /net:", e)
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        db.close()

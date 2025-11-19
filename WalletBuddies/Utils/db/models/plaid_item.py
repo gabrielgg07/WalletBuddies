@@ -21,6 +21,8 @@ class PlaidItem(Base):
     plaid_item_id = Column(Text, unique=True, nullable=False)  # keep this as the Plaid item_id
     institution_name = Column(Text)
     status = Column(String)
+    cursor = Column(Text, nullable=True)
+
     created_at = Column(TIMESTAMP, default=datetime.utcnow)
 
     # --- Relationships ---
