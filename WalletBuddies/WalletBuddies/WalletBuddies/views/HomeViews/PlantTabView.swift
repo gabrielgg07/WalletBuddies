@@ -2,6 +2,8 @@ import SwiftUI
 
 struct PlantTabView: View {
     @State private var showEducation: Bool = false
+    @State private var showPlantScreen = false
+
     @Environment(\.dismiss) private var dismiss
     var body: some View {
         ZStack {
@@ -105,8 +107,16 @@ struct PlantTabView: View {
                 Spacer()
             }
             
-            PlantComponent(scale: 0.7)
-                .offset(x: -80, y: -67)
+            Button {
+                showPlantScreen = true
+            } label: {
+                PlantComponent(scale: 0.7)
+                    .offset(x: -80, y: -67)
+            }
+            .fullScreenCover(isPresented: $showPlantScreen) {
+                PlantFullScreenView()   // whatever view you want to show
+            }
+
             FlatBookStack()
                 .offset(x: 80, y: 132)
                 .onTapGesture {

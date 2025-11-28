@@ -100,11 +100,7 @@ struct AccountTabView: View {
                         accountRow(icon: "arrow.triangle.2.circlepath", title: "Backup & Sync")
                             .onTapGesture { showBackup = true }
                     }
-                    .fullScreenCover(isPresented: $showEditProfile) { EditProfileView() }
-                    .fullScreenCover(isPresented: $showSecurity) { SecuritySettingsView() }
-                    .fullScreenCover(isPresented: $showNotifications) { NotificationsView() }
-                    .fullScreenCover(isPresented: $showPayments) { PaymentMethodsView() }
-                    .fullScreenCover(isPresented: $showBackup) { BackupSyncView() }
+
                     .background(Color(.systemGray6))
                     .cornerRadius(12)
                     .padding(.horizontal)
@@ -127,6 +123,11 @@ struct AccountTabView: View {
                     .fullScreenCover(isPresented: $showPreferences) { PreferencesView() }
                     .fullScreenCover(isPresented: $showHelp) { HelpSupportView() }
                     .fullScreenCover(isPresented: $showTerms) { TermsPrivacyView() }
+                    .fullScreenCover(isPresented: $showEditProfile) { EditProfileView() }
+                    .fullScreenCover(isPresented: $showSecurity) { SecuritySettingsView() }
+                    .fullScreenCover(isPresented: $showNotifications) { NotificationsView() }
+                    .fullScreenCover(isPresented: $showPayments) { PaymentMethodsView() }
+                    .fullScreenCover(isPresented: $showBackup) { BackupSyncView() }
                     .background(Color(.systemGray6))
                     .cornerRadius(12)
                     .padding(.horizontal)
