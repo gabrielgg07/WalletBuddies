@@ -35,3 +35,7 @@ def delete_user(db: Session, user_id: int):
         db.delete(user)
         db.commit()
     return user
+
+#Get all users
+def get_all_users(db:Session):
+    return db.query(User).all()

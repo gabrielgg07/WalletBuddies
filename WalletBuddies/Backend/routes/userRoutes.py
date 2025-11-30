@@ -8,7 +8,7 @@ from Utils.crud.user_crud import (
     get_user,
     get_user_by_email,
     update_user,
-    delete_user
+    delete_user, get_all_users
 )
 import bcrypt
 
@@ -256,9 +256,7 @@ def logIn():
 def updateUserPrivileges():
     get_database = SessionLocal()
     updateFormData = request.get_json() or {}
-    print(updateFormData)
     requestRole = updateFormData.get('requestRole')
-    print(requestRole)
     targetUserEmail = updateFormData.get('targetUserEmail').lower()
     userObj = get_database.query(User).filter(User.email == targetUserEmail).first()
 
@@ -312,6 +310,18 @@ def deleteUserAccount():
         get_database.commit()
         get_database.close()
         return jsonify({"success": True, "message": "User Deleted"}), 200
+
+
+
+#get all users
+@user_bp.route('/getAllUsers',methods=["GET"])
+def getAllUsers():
+    get_database = SessionLocal()
+    allUsers = get_all_users(get_database)
+    if not allUsers:
+        return jsonify({"success": False, "Users": []}), 400
+    return jsonify({"success":True,"Users":[user.dictRepresentation() for user in allUsers]}),200
+
 
 # -------------------------------
 # 🧱 Create new user
