@@ -24,3 +24,11 @@ class User(Base):
 
     # --- Relationships ---
     items = relationship("PlaidItem", back_populates="user", cascade="all, delete")
+
+    def dictRepresentation(user):
+        return {
+            "id":user.id,
+            "name" :user.name,
+            "email":user.email,
+            "role" :user.role
+        }

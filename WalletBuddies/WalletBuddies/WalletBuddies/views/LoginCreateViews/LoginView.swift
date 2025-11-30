@@ -123,5 +123,6 @@ func loginWithEmail(){
 #Preview {
     NavigationStack{
         LoginView()
+            .environmentObject(AuthManager())
     }
 }

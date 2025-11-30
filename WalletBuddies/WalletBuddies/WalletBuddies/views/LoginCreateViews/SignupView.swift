@@ -179,6 +179,16 @@ struct SignupView: View{
                 .opacity(duringIncompleteForm ? 0.7 : 1.2)
             
             
+            Button{
+                auth.tryLogin = false
+                auth.trySignup = false
+            } label:{
+                HStack{
+                    Text("Or Log In with an existing Account")
+                }.frame(maxWidth: .infinity)
+            }.foregroundColor(.white)
+            
+            
         }).frame(maxWidth :.infinity, maxHeight: .infinity, alignment: .center)
             .background(Color.brown.opacity(0.8))
     }
