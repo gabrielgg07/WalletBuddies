@@ -298,7 +298,9 @@ def getAllUsers():
     get_database = SessionLocal()
     allUsers = get_all_users(get_database)
     if not allUsers:
+        get_database.close()
         return jsonify({"success": False, "Users": []}), 400
+    get_database.close()
     return jsonify({"success":True,"Users":[user.dictRepresentation() for user in allUsers]}),200
 
 

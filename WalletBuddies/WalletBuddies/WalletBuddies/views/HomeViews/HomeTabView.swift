@@ -16,6 +16,7 @@ struct HomeTabView: View {
     @State private var showAddExpense = false
     @State private var showReports = false
     @State private var showGoals = false
+    @State private var users:[User] = []
 
     
     var body: some View {
@@ -71,6 +72,57 @@ struct HomeTabView: View {
                         }
                         .padding(.horizontal)
                     }
+                    //MARK: - Add Friends
+    VStack(alignment:.leading,spacing: 16) {
+        Text("Add Friends")
+                        .font(.headline)
+                        .padding(.horizontal)
+                    HStack(spacing: 10){
+                        ForEach(users){user in
+//                                HStack{
+                            if user.email != auth.email{
+                                VStack(alignment: .center){
+                                    Image(systemName: "person.crop.circle.fill")
+                                        .resizable()
+                                        .frame(width: 25, height: 25)
+                                        .foregroundColor(.gray.opacity(0.5))
+                                        .padding(.top, 10)
+                                    
+                                    Text(user.name)
+                                        .font(.caption)
+                                        .lineLimit(1)
+                                    
+                                    
+                                    
+                                    
+                                    Text(user.email)
+                                        .font(.caption)
+                                        .lineLimit(1)
+                                        .padding(.horizontal,8)
+                                    
+                                    
+                                    Button("Add Friend"){
+                                    }
+                                    .frame(width:70,height:15)
+                                    .font(.caption)
+                                    .foregroundStyle(.white)
+                                    .controlSize(.small)
+                                    .background(.black)
+                                    .cornerRadius(7)
+                                  
+                                    
+                                    
+                                    
+                                }.frame(width:100,height:100)
+                                .background(.ultraThinMaterial)
+                                    .cornerRadius(5)
+                                
+                                
+                            }
+                        }.padding(.horizontal)
+//                            }
+                    }
+                }
 
                     // MARK: - Financial News Section
                     VStack(alignment: .leading, spacing: 16) {
@@ -101,18 +153,52 @@ struct HomeTabView: View {
                         .padding(.horizontal)
                     }
 
-                    Spacer(minLength: 50)
-                }
-                .padding(.top)
+                Spacer(minLength: 50)
             }
-            .navigationTitle("Home")
-            .scrollIndicators(.hidden)
+            .padding(.top)
         }
-        .fullScreenCover(isPresented: $showAddExpense) { AddExpenseView() }
-        .fullScreenCover(isPresented: $showReports) { ReportsView() }
-        .fullScreenCover(isPresented: $showGoals) { GoalsView() }
+        .navigationTitle("Home")
+        .scrollIndicators(.hidden)
+    }.onAppear{
+        getUsers()
     }
-
+    .fullScreenCover(isPresented: $showAddExpense) { AddExpenseView() }
+    .fullScreenCover(isPresented: $showReports) { ReportsView() }
+    .fullScreenCover(isPresented: $showGoals) { GoalsView() }
+}
+    
+    
+    
+        func getUsers(){
+            guard let loginURL = URL(string:"http://127.0.0.1:5001/api/users/getAllUsers") else {return}
+            var sendRequest = URLRequest(url : loginURL)
+            sendRequest.httpMethod = "GET"
+            sendRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            URLSession.shared.dataTask(with: sendRequest){ data, response, error in
+                if (error != nil){
+                    print("Error!")
+                    return
+                }
+                
+                guard let data = data else { return }
+                
+                do {
+                    let decoded = try JSONDecoder().decode(UserResponse.self, from: data)
+                    
+                    if decoded.success{
+                        DispatchQueue.main.async {
+                            self.users = decoded.Users.sorted{ $0.id < $1.id}
+                        }
+                    } else {
+                        print("❌ Not found")
+                    }
+                    
+                } catch {
+                    print("❌ Decode error: \(error)")
+                    print(String(data: data, encoding: .utf8) ?? "")
+                }
+            }.resume()
+        }
     // MARK: - Reusable Components
     private func quickAction(icon: String, title: String) -> some View {
         Button {
