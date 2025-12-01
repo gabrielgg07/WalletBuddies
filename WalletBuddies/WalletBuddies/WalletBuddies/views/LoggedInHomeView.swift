@@ -122,10 +122,10 @@ struct HomeView: View {
                 OnboardingStatus.hasSeen = true
             }
         }
-        .onDisappear {
-            let seconds = Int(Date().timeIntervalSince(startTime))
-            questManager.registerEvent(.timeActive(seconds))
-        }
+//        .onDisappear {
+//            let seconds = Int(Date().timeIntervalSince(startTime))
+//            questManager.registerEvent(.timeActive(seconds))
+//        }
         .onReceive(questManager.$completedQuestReward) {
             reward in guard let xp = reward else { return }
             let leveledUp = xpSystemManager.addXP(xp)

@@ -148,7 +148,7 @@ struct PlantTabView: View {
             FinancialEducationView()
         }
         .onAppear {
-            questManager.registerEvent(.visitView("Goals"))
+            questManager.registerEvent(.visitView("Plants"))
         }
     }
 }

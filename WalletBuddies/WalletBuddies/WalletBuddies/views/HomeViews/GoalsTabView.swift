@@ -145,6 +145,4 @@ struct GoalsTabView: View {
         
 }
 
-#Preview {
-    GoalsTabView(userId: 0)
-}
+

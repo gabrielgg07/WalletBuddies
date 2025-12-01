@@ -77,14 +77,23 @@ struct SavingsGoalDetailPopupView: View {
                     Button("Contribute") {
                         if let amount = contributionAmount, amount > 0 {
                             goalManager.contribute(to: goal, amount: amount)
+//                            questManager.registerEvent(.contribute(amount))
                             contributionAmount = nil
-                            questManager.registerEvent(.contribute(contributionAmount!))
                         }
                     }
                     .padding(8)
                     .background(Color.green.opacity(0.7))
                     .foregroundColor(.white)
                     .cornerRadius(8)
+//                    .onReceive(questManager.$completedQuestReward) {
+//                        reward in guard let xp = reward else { return }
+//                        let leveledUp = xpSystemManager.addXP(xp)
+//                        questManager.completedQuestReward = nil
+//                        if leveledUp {
+//                            avatarManager.unlockEligibleAvatars(currentLevel: xpSystemManager.level)
+//                            // could add some animation here
+//                        }
+//                    }
                 }
                 // --- REMOVE BUTTON ---
                 Button(role: .destructive) {

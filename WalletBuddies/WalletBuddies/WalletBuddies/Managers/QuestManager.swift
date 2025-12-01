@@ -101,7 +101,7 @@ class QuestManager: ObservableObject {
             if quests[i].isCompleted { continue }
             guard let template = templateFor(id: quests[i].templateId) else {continue}
             switch (template.type, event) {
-            case (.visitView, .visitView):
+            case (.visitView, .visitView(let viewName)):
                 quests[i].progress += 1
                 
             case (.contribute, .contribute(let amount)):
