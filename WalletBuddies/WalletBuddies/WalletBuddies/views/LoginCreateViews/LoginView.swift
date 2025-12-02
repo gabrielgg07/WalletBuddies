@@ -66,27 +66,7 @@ struct LoginView: View{
                     .padding(.horizontal,20)
                     .tint(.black)
             } else {
-                Button{
-                    print("button was clicked")
-                    if duringIncompleteForm != true{
-                        auth.tempEmail = userEmail
-                        auth.tryLogin = true
-                    }
-                    
-                } label:{
-                    HStack{
-                        Text("Log In")
-                        Image(systemName:"arrow.right")
-                    }.frame(maxWidth: .infinity)
-                    
-                }
-                    .frame(maxWidth: .infinity)
-                    .buttonBorderShape(.roundedRectangle)
-                    .fontWeight(.bold)
-                    .foregroundStyle(.white)
-                    .padding(.vertical,10)
-                    .padding(.horizontal,20)
-                    .tint(.black)
+                // Fallback on earlier versions
             }
             
             if #available(iOS 26.0, *) {
@@ -113,28 +93,7 @@ struct LoginView: View{
                 .tint(.black)
                 .padding(.horizontal)
             } else {
-                Button {
-                    if let rootVC = UIApplication.shared
-                        .connectedScenes
-                        .compactMap({ $0 as? UIWindowScene })
-                        .first?
-                        .windows
-                        .first(where: { $0.isKeyWindow })?
-                        .rootViewController {
-                        
-                        auth.loginWithGoogle(presenting: rootVC)
-                    }
-                } label: {
-                    HStack {
-                        Image(systemName: "globe") // Replace with Google logo if you want
-                        Text("Sign in with Google")
-                    }.frame(maxWidth: .infinity)
-                        .padding(.vertical,3)
-                    
-                }
-                
-                .tint(.black)
-                .padding(.horizontal)
+                // Fallback on earlier versions
             }
             
             
@@ -144,7 +103,6 @@ struct LoginView: View{
             Button{
                 auth.trySignup = true
                 auth.userDoesntExist = false
-                auth.loginSource = "Email"
             } label:{
                 HStack{
                     Text("Sign Up to create an account.")

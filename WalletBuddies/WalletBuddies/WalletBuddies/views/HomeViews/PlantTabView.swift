@@ -2,9 +2,6 @@ import SwiftUI
 
 struct PlantTabView: View {
     @State private var showEducation: Bool = false
-    @State private var showPlantScreen = false
-
-    @EnvironmentObject private var questManager: QuestManager
     @Environment(\.dismiss) private var dismiss
     var body: some View {
         ZStack {
@@ -108,16 +105,8 @@ struct PlantTabView: View {
                 Spacer()
             }
             
-            Button {
-                showPlantScreen = true
-            } label: {
-                PlantComponent(scale: 0.7)
-                    .offset(x: -80, y: -67)
-            }
-            .fullScreenCover(isPresented: $showPlantScreen) {
-                PlantFullScreenView()   // whatever view you want to show
-            }
-
+            PlantComponent(scale: 0.7)
+                .offset(x: -80, y: -67)
             FlatBookStack()
                 .offset(x: 80, y: 132)
                 .onTapGesture {
@@ -146,9 +135,6 @@ struct PlantTabView: View {
         }
         .fullScreenCover(isPresented: $showEducation) {
             FinancialEducationView()
-        }
-        .onAppear {
-            questManager.registerEvent(.visitView("Plants"))
         }
     }
 }

@@ -7,7 +7,7 @@
 
 import Foundation
 // XPSystem: Is used for easily accesing and updating the experience of a user. Uses an exponential formula for xp required per level
-struct XPSystem: Codable {
+struct XPSystem {
     // min amount of variables
     // currentXp amount
     var currentXp: Int
@@ -32,20 +32,5 @@ struct XPSystem: Codable {
     // converts progress to a percent
     func progressPercent() -> Double {
         Double(currentXp) / Double(requiredXP(for: level))
-    }
-    func save(for userId: Int) {
-        let encoder = JSONEncoder()
-        if let data = try? encoder.encode(self) {
-            UserDefaults.standard.set(data, forKey: "\(userId)_xp_system")
-        }
-    }
-    
-    static func load(for userId: Int) -> XPSystem {
-        let key = "\(userId)_xp_system"
-        if let data = UserDefaults.standard.data(forKey: key),
-            let decoded = try? JSONDecoder().decode(XPSystem.self, from: data) {
-            return decoded
-        }
-        return XPSystem(currentXp: 0, level: 1)
     }
 }

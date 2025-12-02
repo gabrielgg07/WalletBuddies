@@ -11,145 +11,77 @@ import Combine
 // QuestManager: manages quests and performs operations that save and load to database. Chooses new quests every day.
 @MainActor
 class QuestManager: ObservableObject {
-    @Published var dailyQuests: [ActiveQuest]
-    @Published var monthlyQuests: [ActiveQuest]
-    @Published var completedQuestReward: Int? = nil
+    @Published var quests: [QuestTemplate] = []        // Daily quests for today
+    @Published var completedQuestIDs: [UUID] = []      // Only store completed IDs
     // userId
-    private var userId: String
+    private let userId: String
     // array of QuestTemplate (s)
-    private let dailyTemplates: [QuestTemplate]
-    private let monthlyTemplates: [QuestTemplate]
+    private let questTemplates: [QuestTemplate]
     // number of quests for a user
     private let questCount = 3
 
     // MARK: - Init : runs first time loading operations
-    init(userID: String, dailyTemplates: [QuestTemplate], monthlyTemplates: [QuestTemplate]) {
+    init(userID: String, questTemplates: [QuestTemplate]) {
         self.userId = userID
-        self.dailyTemplates = dailyTemplates
-        self.monthlyTemplates = monthlyTemplates
-        self.dailyQuests = []
-        self.monthlyQuests = []
-        loadFromStorage()
-        
-        refreshDailyIfNeeded()
-        refreshMonthlyIfNeeded()
+        self.questTemplates = questTemplates
+        loadGenerateDailyQuests()
     }
-    func completeQuest(_ quest: ActiveQuest) {
-        completedQuestReward = quest.rewardXP
-    }
-    func updateUserId(_ newUserId: String) {
-        self.userId = newUserId
-    }
-    func refreshDailyIfNeeded() {
+
+    // MARK: - Daily Quest Generation : Chooses new quests for the day
+    func loadGenerateDailyQuests() {
         let today = Calendar.current.startOfDay(for: Date())
-        
-        if dailyQuests.isEmpty || dailyQuests.first!.assignedDate < today {
-            assignNewDailyQuests()
+
+        // Load from storage if already generated today
+        if let savedIDs = loadStoredCompletedIDs(),
+           // checks for date and whether to assign new quest
+           let lastAssignedDate = UserDefaults.standard.object(forKey: "dailyQuestsDate_\(userId)") as? Date,
+           Calendar.current.isDate(today, inSameDayAs: lastAssignedDate) {
+            self.completedQuestIDs = savedIDs
+            // shuffles quests
+            self.quests = Array(questTemplates.shuffled().prefix(questCount))
+            return
+        }
+
+        // Pick new daily quests
+        let selected = Array(questTemplates.shuffled().prefix(questCount))
+        self.quests = selected
+        self.completedQuestIDs = []
+
+        // Save today's date for daily reset
+        UserDefaults.standard.set(today, forKey: "dailyQuestsDate_\(userId)")
+        saveCompletedIDs()
+    }
+
+    // MARK: - Complete Quest : completes a quest and saves the completed quest ids
+    func completeQuest(_ quest: QuestTemplate) {
+        if !completedQuestIDs.contains(quest.id) {
+            completedQuestIDs.append(quest.id)
+            saveCompletedIDs()
         }
     }
-    private func assignNewDailyQuests() {
-        dailyQuests = dailyTemplates.shuffled().prefix(3).map { template in
-            ActiveQuest(
-                id: UUID().uuidString,
-                title: template.title,
-                description: template.description,
-                templateId: template.id.uuidString,
-                rewardXP: template.rewardXP,
-                assignedDate: Date(),
-                expirationDate: Calendar.current.date(byAdding: .day, value: 1, to: Date())!,
-                progress: 0,
-                isCompleted: false
-            )
-        }
-        saveToStorage()
+    // checks if quest is completed
+    func isQuestCompleted(_ quest: QuestTemplate) -> Bool {
+        return completedQuestIDs.contains(quest.id)
     }
-    
-    func refreshMonthlyIfNeeded() {
-        let now = Date()
-        let comps = Calendar.current.dateComponents([.year,.month], from: now)
-        let firstDay = Calendar.current.date(from: comps)!
-        if monthlyQuests.isEmpty || monthlyQuests.first!.assignedDate < firstDay {
-            assignNewMonthlyQuests(for: firstDay)
-        }
+
+    // MARK: - Persistence (UserDefaults for demo)
+    private func storageKey() -> String {
+        return "completedQuests_\(userId)"
     }
-    private func assignNewMonthlyQuests(for firstDay: Date) {
-        monthlyQuests = monthlyTemplates.map { template in
-            let nextMonth = Calendar.current.date(byAdding: .month, value: 1, to: firstDay)!
-            return ActiveQuest(
-                id: UUID().uuidString,
-                title: template.title,
-                description: template.description,
-                templateId: template.id.uuidString,
-                rewardXP: template.rewardXP,
-                assignedDate: firstDay,
-                expirationDate: nextMonth,
-                progress: 0,
-                isCompleted: false
-            )
+    // will save completed quest ids
+    private func saveCompletedIDs() {
+        UserDefaults.standard.set(completedQuestIDs, forKey: storageKey())
+
+        // --- Future backend example ---
+        /*
+        Task {
+            // Send completed quest IDs to backend
+            // await api.post("/users/\(userId)/completedQuests", body: completedQuestIDs)
         }
-        saveToStorage()
+        */
     }
-    
-    func registerEvent(_ event: QuestEvent) {
-        update(event: event, for: &dailyQuests)
-        update(event: event, for: &monthlyQuests)
-        saveToStorage()
+    // will load completed quest ids
+    private func loadStoredCompletedIDs() -> [UUID]? {
+        return UserDefaults.standard.array(forKey: storageKey()) as? [UUID]
     }
-    
-    private func update(event: QuestEvent, for quests: inout [ActiveQuest]) {
-        for i in quests.indices {
-            if quests[i].isCompleted { continue }
-            guard let template = templateFor(id: quests[i].templateId) else {continue}
-            switch (template.type, event) {
-            case (.visitView, .visitView(let viewName)):
-                quests[i].progress += 1
-                
-            case (.contribute, .contribute(let amount)):
-                quests[i].progress += amount
-                
-            case (.timeActive, .timeActive(let seconds)):
-                quests[i].progress += Double(seconds)
-                
-            default:
-                continue
-            }
-            
-            if let target = template.targetValue, quests[i].progress >= target {
-                quests[i].isCompleted = true
-                quests[i].progress = target
-                completeQuest(quests[i])
-            }
-        }
-    }
-    
-    private func templateFor(id: String) -> QuestTemplate? {
-        (dailyTemplates + monthlyTemplates).first { $0.id.uuidString == id}
-    }
-    
-    func saveToStorage() {
-        let encoder = JSONEncoder()
-        if let encodedDaily = try? encoder.encode(dailyQuests) {
-            UserDefaults.standard.set(encodedDaily,forKey: "dailyQuests_\(userId)")
-            
-        }
-        if let encodedMonthly = try? encoder.encode(monthlyQuests) {
-            UserDefaults.standard.set(encodedMonthly,forKey: "monthlyQuests_\(userId)")
-        }
-        
-    }
-    
-    func loadFromStorage() {
-        let decoder = JSONDecoder()
-        if let savedData = UserDefaults.standard.data(forKey: "dailyQuests_\(userId)"),
-           let decoded = try? decoder.decode([ActiveQuest].self, from: savedData) {
-            self.dailyQuests = decoded
-        }
-        
-        if let savedData = UserDefaults.standard.data(forKey: "monthlyQuests_\(userId)"),
-           let decoded = try? decoder.decode([ActiveQuest].self, from: savedData) {
-            self.monthlyQuests = decoded
-        }
-        
-    }
-    
 }

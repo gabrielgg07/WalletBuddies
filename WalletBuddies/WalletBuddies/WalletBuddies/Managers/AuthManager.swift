@@ -14,7 +14,6 @@ struct LoginResponse: Codable {
     let success: Bool
     let message: String
     let user: UserData?
-    let linked: Bool
 }
 
 struct UserData: Codable {
@@ -217,7 +216,7 @@ class AuthManager: ObservableObject {
     }
     
     func submitLoginForm(){
-        guard let loginURL = URL(string:"\(BaseURL)/api/users/login") else {return}
+        guard let loginURL = URL(string:"http://127.0.0.1:5001/api/users/login") else {return}
         let payload : [String:Any] = ["emailAddress" : self.email/*, "GID_Token" : self.gidToken*/, "source" : self.loginSource ]
         var sendRequest = URLRequest(url : loginURL)
         sendRequest.httpMethod = "POST"
@@ -236,9 +235,7 @@ class AuthManager: ObservableObject {
                 let decoded = try JSONDecoder().decode(LoginResponse.self, from: data)
 
                 if decoded.success, let user = decoded.user {
-                    
                     DispatchQueue.main.async {
-                        self.isPlaidLinked = decoded.linked
                         self.handleLoginResponse(user: user)
                     }
                 } else {
@@ -261,7 +258,7 @@ class AuthManager: ObservableObject {
     
     
     func submitSignupForm(){
-        guard let signupURL = URL(string:"\(BaseURL)/api/users/signup") else {return}
+        guard let signupURL = URL(string:"http://127.0.0.1:5001/api/users/signup") else {return}
         let payload : [String:Any] = ["userName" : self.name, "emailAddress" : self.email, "GID_Token" : self.gidToken, "source" : self.loginSource ]
         var sendRequest = URLRequest(url : signupURL)
         sendRequest.httpMethod = "POST"

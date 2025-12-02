@@ -12,7 +12,7 @@ import SwiftUI
 // MARK: - QUEST CARD
 // QuestCardView: the information of a quest on a card. used by the quests popup to display all of a user's quests
 struct QuestCardView: View {
-    let quest: ActiveQuest
+    let quest: QuestTemplate
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -45,7 +45,7 @@ struct QuestCardView: View {
 // QuestsPopupView: the popup that shows the user's quests
 struct QuestsPopupView: View {
     @Binding var isPresented: Bool
-    let quests: [ActiveQuest]
+    let quests: [QuestTemplate]
     
     var body: some View {
         ZStack {

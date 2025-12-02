@@ -49,7 +49,7 @@ struct AccountTabView: View {
     @State private var showPreferences = false
     @State private var showHelp = false
     @State private var showTerms = false
-    @State private var showAvatar = false
+
 
     @State private var isDeleted = false
     @State private var tryDelete = false
@@ -99,16 +99,11 @@ struct AccountTabView: View {
                             .onTapGesture { showPayments = true }
                         accountRow(icon: "arrow.triangle.2.circlepath", title: "Backup & Sync")
                             .onTapGesture { showBackup = true }
-                        accountRow(icon: "tree", title: "Change Avatar")
-                            .onTapGesture {showAvatar = true}
                     }
-
                     .fullScreenCover(isPresented: $showEditProfile) { EditProfileView() }
                     .fullScreenCover(isPresented: $showSecurity) { SecuritySettingsView() }
                     .fullScreenCover(isPresented: $showNotifications) { NotificationsView() }
                     .fullScreenCover(isPresented: $showPayments) { PaymentMethodsView() }
-                    .fullScreenCover(isPresented: $showAvatar) {
-                        ChangeAvatarView(avatarManager: AvatarManager(userId: auth.userId))}
                     .fullScreenCover(isPresented: $showBackup) { BackupSyncView() }
                     .background(Color(.systemGray6))
                     .cornerRadius(12)
@@ -132,11 +127,6 @@ struct AccountTabView: View {
                     .fullScreenCover(isPresented: $showPreferences) { PreferencesView() }
                     .fullScreenCover(isPresented: $showHelp) { HelpSupportView() }
                     .fullScreenCover(isPresented: $showTerms) { TermsPrivacyView() }
-                    .fullScreenCover(isPresented: $showEditProfile) { EditProfileView() }
-                    .fullScreenCover(isPresented: $showSecurity) { SecuritySettingsView() }
-                    .fullScreenCover(isPresented: $showNotifications) { NotificationsView() }
-                    .fullScreenCover(isPresented: $showPayments) { PaymentMethodsView() }
-                    .fullScreenCover(isPresented: $showBackup) { BackupSyncView() }
                     .background(Color(.systemGray6))
                     .cornerRadius(12)
                     .padding(.horizontal)

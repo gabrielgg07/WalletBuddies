@@ -10,9 +10,6 @@ import SwiftUI
 // SavingsGoalDetailPopupView: Pop Up used by GoalsTabView that show the details of the SavingsGoal
 struct SavingsGoalDetailPopupView: View {
     @Binding var isPresented: Bool
-    @EnvironmentObject var questManager: QuestManager
-    @EnvironmentObject var avatarManager: AvatarManager
-    @EnvironmentObject var xpSystemManager: XPSystemManager
     // goalManager
     @ObservedObject var goalManager: SavingsGoalManager
     // selected goal
@@ -77,7 +74,6 @@ struct SavingsGoalDetailPopupView: View {
                     Button("Contribute") {
                         if let amount = contributionAmount, amount > 0 {
                             goalManager.contribute(to: goal, amount: amount)
-//                            questManager.registerEvent(.contribute(amount))
                             contributionAmount = nil
                         }
                     }
@@ -85,15 +81,6 @@ struct SavingsGoalDetailPopupView: View {
                     .background(Color.green.opacity(0.7))
                     .foregroundColor(.white)
                     .cornerRadius(8)
-//                    .onReceive(questManager.$completedQuestReward) {
-//                        reward in guard let xp = reward else { return }
-//                        let leveledUp = xpSystemManager.addXP(xp)
-//                        questManager.completedQuestReward = nil
-//                        if leveledUp {
-//                            avatarManager.unlockEligibleAvatars(currentLevel: xpSystemManager.level)
-//                            // could add some animation here
-//                        }
-//                    }
                 }
                 // --- REMOVE BUTTON ---
                 Button(role: .destructive) {
@@ -116,17 +103,5 @@ struct SavingsGoalDetailPopupView: View {
             .shadow(radius: 10)
         }
         .zIndex(10)
-        .onAppear {
-            questManager.registerEvent(.visitView("GoalsPopup"))
-        }
-        .onReceive(questManager.$completedQuestReward) {
-            reward in guard let xp = reward else { return }
-            let leveledUp = xpSystemManager.addXP(xp)
-            questManager.completedQuestReward = nil
-            if leveledUp {
-                avatarManager.unlockEligibleAvatars(currentLevel: xpSystemManager.level)
-                // could add some animation here
-            }
-        }
     }
 }

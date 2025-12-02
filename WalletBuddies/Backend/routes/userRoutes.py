@@ -274,6 +274,7 @@ def updateUserPrivileges():
             get_database.commit()
             get_database.close()
             return jsonify({"success":True, "message": "Role changed to admin"}),200
+
     return jsonify({"success": False, "message": "Not successful"}), 200
 
 #Delete user
@@ -319,7 +320,9 @@ def getAllUsers():
     get_database = SessionLocal()
     allUsers = get_all_users(get_database)
     if not allUsers:
+        get_database.close()
         return jsonify({"success": False, "Users": []}), 400
+    get_database.close()
     return jsonify({"success":True,"Users":[user.dictRepresentation() for user in allUsers]}),200
 
 

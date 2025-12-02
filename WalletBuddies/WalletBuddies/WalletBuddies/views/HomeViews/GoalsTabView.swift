@@ -52,7 +52,6 @@ struct AddGoalSectionView: View {
                     goalManager.addGoal(title: newGoalTitle, target: target)
                     newGoalTitle = ""
                     newGoalTarget = nil
-                    
                 }
             }) {
                 // text inside the button
@@ -75,11 +74,7 @@ struct AddGoalSectionView: View {
 
 // GoalsTabView: The view for the page. Combines all of the different views together
 struct GoalsTabView: View {
-    @EnvironmentObject var questManager: QuestManager
-    @EnvironmentObject var authManager: AuthManager
     // manager for goals. used for seeing the goals of the user
-    @EnvironmentObject var xpSystemManager: XPSystemManager
-    @EnvironmentObject private var avatarManager: AvatarManager
     @StateObject private var goalManager: SavingsGoalManager
     // selected goal for popup
     @State private var selectedGoal: SavingsGoal?
@@ -90,8 +85,8 @@ struct GoalsTabView: View {
     // add goal target variable
     @State private var newGoalTarget: Double? = nil
     // runs on the first when opening view. used for demo. will be replaced with actual data acquiring
-    init(userId: Int) {
-        _goalManager = StateObject(wrappedValue: SavingsGoalManager(userId: String(userId)))
+    init() {
+        _goalManager = StateObject(wrappedValue: SavingsGoalManager(userId: "user123"))
     }
     
     var body: some View {
@@ -106,9 +101,6 @@ struct GoalsTabView: View {
                     ForEach(goalManager.goals) { goal in
                         Button(action: { selectedGoal = goal; showGoalDetail = true }) {
                             GoalRowView(goal: goal)
-                                .environmentObject(questManager)
-                                .environmentObject(avatarManager)
-                                .environmentObject(xpSystemManager)
                         }
                     }
                 }
@@ -120,18 +112,6 @@ struct GoalsTabView: View {
             // the add goal view at the bottom of screen. Allows adding goals to manager and database associated with user
             AddGoalSectionView(goalManager: goalManager, newGoalTitle: $newGoalTitle, newGoalTarget: $newGoalTarget)
         }
-        .onAppear {
-            questManager.registerEvent(.visitView("Goals"))
-        }
-        .onReceive(questManager.$completedQuestReward) {
-            reward in guard let xp = reward else { return }
-            let leveledUp = xpSystemManager.addXP(xp)
-            questManager.completedQuestReward = nil
-            if leveledUp {
-                avatarManager.unlockEligibleAvatars(currentLevel: xpSystemManager.level)
-                // could add some animation here
-            }
-        }
         .overlay(
             // Goal Details popup
             Group {
@@ -142,7 +122,8 @@ struct GoalsTabView: View {
             }
         )
     }
-        
 }
 
-
+#Preview {
+    GoalsTabView()
+}
