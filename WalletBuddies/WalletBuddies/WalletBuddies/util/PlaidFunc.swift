@@ -18,7 +18,9 @@ import Foundation
 #if targetEnvironment(simulator)
 let BaseURL = "http://127.0.0.1:5001"
 #else
-let BaseURL = "https://936482830bdf.ngrok-free.app"  // your Mac’s LAN IP for iPhone testing
+
+let BaseURL = "https://b5344c30d85c.ngrok-free.app"  // your Mac’s LAN IP for iPhone testing
+
 #endif
 
 // MARK: - Networking helpers
